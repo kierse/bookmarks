@@ -1,0 +1,8 @@
+TODO
+====
+- look at using Fields method on Message object instead of passing fields has to Message constructor from
+all child classes.
+- fields method would have to maintain a hash identified by calling child class.
+- every call to fields method would overwrite all previous data for calling class
+- make sure logger and model are only being loaded once
+- UNIVERSAL::require errors are not being properly thrown and caught

@@ -1,0 +1,28 @@
+Bookmark Synchronization
+========================
+- web service that can be run locally or under my pissiphany.com account
+  - look at SOAP & SOAP::Lite, JSON, POX
+- should be able to accept a full bookmark file or additions / changes to existing bookmarks
+- support different bookmark files (work, personal, pr0n, etc).
+- should be able to dynamically build a bookmark file based on bookmark files the user has requested, ie if user requests
+  work and personal, it should be able to build a new bookmark file comprised of both sub bookmark files
+- firefox plugin to use service.  Should use ajax gets/posts to administer bookmarks
+- svn or database backend to "version" bookmark files
+  - each bookmark can be 'tagged' one or more times
+- should support both cgi and mod_perl
+
+Functionality
+=============
+- each bookmark file should have a global counter, basically a version number.  The client would pass its counter value to
+  the server and if they differ, the server should send back any changes.  Eventually this could be used to maintain a version
+  history for all bookmark files.
+- 
+
+Why use XUL: http://www.xulplanet.com/tutorials/whyxul.html
+
+
+Modified Preorder Tree Traversal
+================================
+http://www.sitepoint.com/article/hierarchical-data-database
+http://dev.mysql.com/tech-resources/articles/hierarchical-data.html
+
