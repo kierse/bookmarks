@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Exception;
-use Exception::Server::Types;
+use Exception::Client::Types;
 use Controller;
 
 use base qw/Handler/;
@@ -84,11 +84,27 @@ sub delete
 	throw Exception::Client::MissingRequestData(__PACKAGE__ . "::delete requires a valid file name or id")
 		unless defined $args->[0]{"id"} || defined $args->[0]{"name"};
 
-	my $file = $args->[0]{"id"}
-		? $model->resultset('File')->find($args->[0]{"id"})->delete()
-		: $model->resultset('File')->find({name => $args->[0]{"name"}, owner => $token->user()->id()}, {key=>'file_name_owner'})->delete();
+	my $file;
+	if ($args->[0]{"id"})
+	{
+		$file = $model->resultset('File')->find($args->[0]{"id"});
+	}
+	else
+	{
+		my @Files = $model->resultset('File')->find({name => $args->[0]{"name"}, owner => $token->user()->id()}, {key=>'file_name_owner'});
+		if (scalar @Files)
+		{
+			$file = (scalar @Files == 1)
+				? pop @Files
+				: throw Exception::Client::InvalidRequest("Given file name is not unique");
+		}
+	}
 
-	return unless ref $file;
+	throw Exception::Client::InvalidRequest("No file by the name of '$args->[0]{name}' found")
+		unless ref $file;
+
+	# delete file
+	$file->delete();
 
 	# set the response status to 1 unless the file
 	# object wasn't deleted

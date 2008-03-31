@@ -18,24 +18,12 @@ __PACKAGE__->add_columns
 		'is_auto_increment' => 1,
 		'is_nullable' => 0,
 	},
-	'name' =>
+	'bookmark' =>
 	{
-		'accessor' => 'name',
-		'data_type' => 'VARCHAR',
-		'size' => 50, 
-		'is_nullable' => 0,
-	},
-	'lft' =>
-	{
-		'accessor' => 'left',
+		'accessor' => 'bookmark',
 		'data_type' => 'INTEGER',
 		'is_nullable' => 0,
-	},
-	'rgt' =>
-	{
-		'accessor' => 'right',
-		'data_type' => 'INTEGER',
-		'is_nullable' => 0,
+		'is_foreign_key' => 1,
 	},
 	'created' =>
 	{
@@ -66,9 +54,7 @@ __PACKAGE__->add_columns
 # define table keys, including the primary key
 __PACKAGE__->set_primary_key("id");
 
-# define many-to-many relationship with Model::File
-__PACKAGE__->has_many("folder_bookmarks" => "Model::Bookmark", "folder");
-__PACKAGE__->has_many("folder_files" => "Model::PartOf", "folder");
-__PACKAGE__->many_to_many("files" => "folder_files", "po_file");
+# define any foreign key constraints
+__PACKAGE__->belongs_to("bookmark" => "Model::Bookmark");
 
 1;

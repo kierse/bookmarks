@@ -14,40 +14,39 @@ __PACKAGE__->add_columns
 	'id' =>
 	{
 		'accessor' => 'id',
-		'data_type' => 'integer',
+		'data_type' => 'INTEGER',
 		'is_auto_increment' => 1,
-		'is_nullable' => 0,
 	},
 	'username' =>
 	{
 		'accessor' => 'username',
-		'data_type' => 'varchar',
+		'data_type' => 'VARCHAR',
 		'size' => 15,
 		'is_nullable' => 0,
 	},
 	'password' =>
 	{
 		'accessor' => 'password',
-		'data_type' => 'varchar',
+		'data_type' => 'VARCHAR',
 		'size' => 25,
 		'is_nullable' => 0,
 	},
 	'name' =>
 	{
 		'accessor' => 'name',
-		'data_type' => 'varchar',
+		'data_type' => 'VARCHAR',
 		'size' => 50,
 	},
 	'email' =>
 	{
 		'accessor' => 'email',
-		'data_type' => 'varchar',
+		'data_type' => 'VARCHAR',
 		'size' => 25,
 	},
 	'active' =>
 	{
 		'accessor' => '_active',
-		'data_type' => 'boolean',
+		'data_type' => 'BOOLEAN',
 		'default_value' => 1,
 		'is_nullable' => 0,
 	},

@@ -1,4 +1,4 @@
-package Model::File;
+package Model::Link;
 
 use base qw/Model/;
 
@@ -6,7 +6,7 @@ use base qw/Model/;
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 
 # set database table name
-__PACKAGE__->table("file");
+__PACKAGE__->table('link');
 
 # define table columns
 __PACKAGE__->add_columns
@@ -17,33 +17,23 @@ __PACKAGE__->add_columns
 		'data_type' => 'INTEGER',
 		'is_auto_increment' => 1,
 	},
-	'name' =>
+	'url' =>
 	{
-		'accessor' => 'name',
+		'accessor' => 'url',
 		'data_type' => 'VARCHAR',
-		'size' => 50,
 		'is_nullable' => 0,
 	},
-	'owner' =>
+	'keyword' =>
 	{
-		'accessor' => 'owner',
+		'accessor' => 'keyword',
+		'data_type' => 'VARCHAR',
+	},
+	'bookmark' =>
+	{
+		'accessor' => 'bookmark',
 		'data_type' => 'INTEGER',
 		'is_nullable' => 0,
 		'is_foreign_key' => 1,
-	},
-	'writeable' =>
-	{
-		'accessor' => 'writeable',
-		'data_type' => 'BOOLEAN',
-		'default_value' => 0,
-		'is_nullable' => 0,
-	},
-	'private' =>
-	{
-		'accessor' => 'private',
-		'data_type' => 'BOOLEAN',
-		'default_value' => 1,
-		'is_nullable' => 0,
 	},
 	'created' =>
 	{
@@ -74,14 +64,13 @@ __PACKAGE__->add_columns
 # define table keys, including the primary key
 __PACKAGE__->set_primary_key("id");
 
-# make sure file name is unique
-__PACKAGE__->add_unique_constraint(["name","owner"]);
+# make sure url is unique
+__PACKAGE__->add_unique_constraint(["url"]);
 
 # define any foreign key constraints
-# format: local_field_name, Package namespace, foreign_field_name
-__PACKAGE__->belongs_to("owner" => "Model::User");
+__PACKAGE__->belongs_to("bookmark" => "Model::Bookmark");
 
-# define one-to-many relationship with Model::Bookmark
-__PACKAGE__->has_many("file_bookmarks" => "Model::Bookmark", "file");
+__PACKAGE__->has_many("link_tags" => "Model::LinkTag", 'link');
+__PACKAGE__->many_to_many("tags" => 'link_tags', 'tags');
 
 1;

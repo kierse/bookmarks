@@ -16,10 +16,12 @@ our $AUTOLOAD;
 
 my %Controllers = 
 (
-	"User" => "Handler::User",
 	"Bookmark" => "Handler::Bookmark",
-	"Folder" => "Handler::Folder",
 	"File" => "Handler::File",
+	"Folder" => "Handler::Folder",
+	"Link" => "Handler::Link",
+	"Tag" => "Handler::Tag",
+	"User" => "Handler::User",
 );
 
 # field declaration - - - - - - - - - - - - - - - - - - - - -

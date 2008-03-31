@@ -49,7 +49,7 @@ catch Exception::Server::Database with
 }
 finally
 {
-	ok(Exception::Server::Database->prior(), "attempting to insert duplicate username...");
+	ok(Exception::Server::Database->prior(), "attempting to insert duplicate username");
 };
 
 # insert null username
@@ -64,7 +64,7 @@ catch Exception::Server::Database with
 }
 finally
 {
-	ok(Exception::Server::Database->prior(), "attempting to insert a null username...");
+	ok(Exception::Server::Database->prior(), "attempting to insert a null username");
 };
 
 # create files for each user
@@ -97,59 +97,102 @@ finally
 	ok(Exception::Server::Database->prior(), "attempting to insert duplicate file...");
 };
 
+# create a bookmarks hierarchy structure
+my $bookmark_rs = $schema->resultset("Bookmark");
+my @Bookmarks = $bookmark_rs->populate
+(
+	[
+		{id => 0, title => "A", lft => 0, rgt => 25, file => 5},
+		{id => 1, title => "B", lft => 1, rgt => 10, file => 5},
+		{id => 2, title => "C", lft => 11, rgt => 24, file => 5},
+		{id => 3, title => "D", lft => 2, rgt => 3, file => 5},
+		{id => 4, title => "E", lft => 4, rgt => 9, file => 5},
+		{id => 5, title => "F", lft => 12, rgt => 13, file => 5},
+		{id => 6, title => "G", lft => 14, rgt => 23, file => 5},
+		{id => 7, title => "H", lft => 5, rgt => 6, file => 5},
+		{id => 8, title => "I", lft => 7, rgt => 8, file => 5},
+		{id => 9, title => "J", lft => 15, rgt => 22, file => 5},
+		{id => 10, title => "K", lft => 16, rgt => 17, file => 5},
+		{id => 11, title => "L", lft => 18, rgt => 19, file => 5},
+		{id => 12, title => "M", lft => 20, rgt => 21, file => 5},
+	],
+);
+ok(scalar @Bookmarks, "inserting bookmarks into database");
+
+# attempt to insert non-unique bookmark
+Exception->flush();
+try
+{
+	$bookmark_rs->create({id => 13, title => "invalid", lft => 0, rgt => 25, file => 5});
+}
+catch Exception::Server::Database with
+{
+	# do nothing, test in finally block will report on error
+}
+finally
+{
+	ok(Exception::Server::Database->prior(), "attempting to insert non-unique bookmark");
+};
+
 # create some folders 
 my $folder_rs = $schema->resultset("Folder");
 my @Folders = $folder_rs->populate
 (
 	[
-		{id => 0, name => "folderA", lft => 1, rgt => 10, description => "this is folderA"},
-		{id => 1, name => "folderB", lft => 2, rgt => 7, description => "this is folderB"},
-		{id => 2, name => "folderC", lft => 3, rgt => 6, description => "this is folderC"},
-		{id => 3, name => "folderD", lft => 4, rgt => 5, description => "this is folderD"},
-		{id => 4, name => "folderE", lft => 8, rgt => 9, description => "this is folderE"},
+		{id => 0, bookmark => 0, description => "this is folderA"},
+		{id => 1, bookmark => 1, description => "this is folderB"},
+		{id => 2, bookmark => 2, description => "this is folderC"},
+		{id => 3, bookmark => 4, description => "this is folderE"},
+		{id => 4, bookmark => 5, description => "this is folderF"},
+		{id => 5, bookmark => 6, description => "this is folderG"},
+		{id => 6, bookmark => 9, description => "this is folderJ"},
 	],
 );
 ok(scalar @Folders, "inserting folders into database");
 
-# create bookmarks for each user
-my $bookmark_rs = $schema->resultset("Bookmark");
-my @Bookmarks = $bookmark_rs->populate
+# create some links
+my $link_rs = $schema->resultset("Link");
+my @Links = $link_rs->populate
 (
 	[
-		{id => 0, url => "http://digg.com", description => "social news site", folder => 0},
-		{id => 1, url => "http://reddit.com", description => "social news site too", folder => 1},
-		{id => 2, url => "http://slashdot.com", description => "social news site also", folder => 1}, 
+		{id => 0, url => "http://digg.com", bookmark => 3},
+		{id => 1, url => "http://slashdot.com", bookmark => 7},
+		{id => 2, url => "http://reddit.com", bookmark => 8},
+		{id => 3, url => "http://google.com", bookmark => 10},
+		{id => 4, url => "http://wikipedia.com", bookmark => 11},
+		{id => 5, url => "http://perl.com", bookmark => 12},
 	],
 );
-ok(scalar @Bookmarks, "inserting bookmarks into database");
+ok(scalar @Links, "inserting links into database");
 
-# adding folders to files
-my $part_of_rs = $schema->resultset("PartOf");
-my @Lists = $part_of_rs->populate
-(
-	[
-		{folder => 0, file => 0},
-		{folder => 1, file => 0},
-		{folder => 2, file => 0},
-		{folder => 3, file => 0},
-		{folder => 4, file => 0},
-		{folder => 0, file => 1},
-		{folder => 2, file => 1},
-	],
-);
-ok(scalar @Lists, "adding folders to files");
-
-# add some tags to bookmarks
+# add some tags 
 my $tag_rs = $schema->resultset("Tag");
 my @Tags = $tag_rs->populate
 (
 	[
-		{tag => "social news", file => 0, bookmark => 0},
-		{tag => "social news", file => 0, bookmark => 1},
-		{tag => "social news", file => 0, bookmark => 2},
-		{tag => "linux", file => 1, bookmark => 0},
-		{tag => "technology", file => 4, bookmark => 2},
+		{id => 0, tag => "social news"},
+		{id => 1, tag => "programming"},
+		{id => 2, tag => "reference"},
+		{id => 3, tag => "search"},
+		{id => 4, tag => "technology"},
 	],
 );
-ok(scalar @Tags, "adding tags to bookmarks");
+ok(scalar @Tags, "inserting tags into database");
+
+# add some tags to links
+my $linktag_rs = $schema->resultset("LinkTag");
+my @LinkTags = $linktag_rs->populate
+(
+	[
+		{tag => 0, link => 0},
+		{tag => 0, link => 1},
+		{tag => 0, link => 2},
+		{tag => 1, link => 5},
+		{tag => 2, link => 4},
+		{tag => 3, link => 3},
+		{tag => 4, link => 0},
+		{tag => 4, link => 5},
+	],
+);
+ok(scalar @LinkTags, "adding tags to links");
 

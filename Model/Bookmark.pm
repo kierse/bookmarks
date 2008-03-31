@@ -16,40 +16,30 @@ __PACKAGE__->add_columns
 		'accessor' => 'id',
 		'data_type' => 'INTEGER',
 		'is_auto_increment' => 1,
-		'is_nullable' => 0,
-	},
-	'url' =>
-	{
-		'accessor' => 'url',
-		'data_type' => 'VARCHAR',
-		'size' => 256,
-		'is_nullable' => 0,
 	},
 	'title' =>
 	{
 		'accessor' => 'title',
 		'data_type' => 'VARCHAR',
-		'size' => 256,
 	},
-	'icon' =>
+	'lft' =>
 	{
-		'accessor' => 'icon',
-		'data_type' => 'VARCHAR',
-		'size' => 256,
+		'accessor' => 'lft',
+		'data_type' => 'INTEGER',
+		'is_nullable' => 0,
 	},
-	'folder' =>
+	'rgt' =>
 	{
-		'accessor' => 'folder',
+		'accessor' => 'rgt',
+		'data_type' => 'INTEGER',
+		'is_nullable' => 0,
+	},
+	'file' =>
+	{
+		'accessor' => 'file',
 		'data_type' => 'INTEGER',
 		'is_nullable' => 0,
 		'is_foreign_key' => 1,
-	},
-	'position' =>
-	{
-		'accessor' => 'position',
-		'data_type' => 'INTEGER',
-		'default_value' => 0,
-		'extra' => { 'unsigned' => 1 },
 	},
 	'created' =>
 	{
@@ -70,27 +60,34 @@ __PACKAGE__->add_columns
 		'default_value' => 0,
 		'extra' => { 'unsigned' => 1 },
 	},
-	'keywords' =>
-	{
-		'accessor' => 'keywords',
-		'data_type' => "VARCHAR",
-		'size' => 256,
-	},
-	'description' =>
-	{
-		'accessor' => 'description',
-		'data_type' => 'TEXT',
-	},
+#	'type' =>
+#	{
+#		'accessor' => 'type',
+#		'data_type' => 'ENUM',
+#
+#		# not sure how to set other valid ENUM values
+#		# available values: f (folder), s (separator), l (link)
+#		'default_value' => 'l',
+#		'is_nullable' => 0,
+#	},
+#	'description' =>
+#	{
+#		'accessor' => 'description',
+#		'data_type' => 'TEXT',
+#	},
 );
 
 # define table keys, including the primary key
 __PACKAGE__->set_primary_key("id");
 
-# define any foreign key constraints
-__PACKAGE__->belongs_to("bookmark_folder" => "Model::Folder", "folder", {cascade_delete => 1});
+# make sure bookmark hierarchy position is unique to current file
+__PACKAGE__->add_unique_constraint(["lft", "rgt", "file"]);
 
-# define many-to-many relationship with Model::File
-__PACKAGE__->has_many("bookmark_files" => "Model::Tag", "bookmark");
-__PACKAGE__->many_to_many("files" => "bookmark_files", "tag_file");
+# define any foreign key constraints
+__PACKAGE__->belongs_to("file" => "Model::File", undef, {cascade_delete => 1});
+
+# define optional one-to-one relationships
+__PACKAGE__->might_have("bookmark_folder", "Model::Folder", "id");
+__PACKAGE__->might_have("bookmark_link", "Model::Link", "id");
 
 1;
