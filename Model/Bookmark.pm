@@ -34,6 +34,12 @@ __PACKAGE__->add_columns
 		'data_type' => 'INTEGER',
 		'is_nullable' => 0,
 	},
+	'level' =>
+	{
+		'accessor' => 'level',
+		'data_type' => 'INTEGER',
+		'is_nullable' => 0,
+	},
 	'file' =>
 	{
 		'accessor' => 'file',
@@ -81,7 +87,7 @@ __PACKAGE__->add_columns
 __PACKAGE__->set_primary_key("id");
 
 # make sure bookmark hierarchy position is unique to current file
-__PACKAGE__->add_unique_constraint(["lft", "rgt", "file"]);
+#__PACKAGE__->add_unique_constraint(["lft", "rgt", "file"]);
 
 # define any foreign key constraints
 __PACKAGE__->belongs_to("file" => "Model::File", undef, {cascade_delete => 1});
@@ -89,5 +95,9 @@ __PACKAGE__->belongs_to("file" => "Model::File", undef, {cascade_delete => 1});
 # define optional one-to-one relationships
 __PACKAGE__->might_have("bookmark_folder", "Model::Folder", "id");
 __PACKAGE__->might_have("bookmark_link", "Model::Link", "id");
+
+my $source = __PACKAGE__->result_source_instance();
+my $new_source = $source->new($source);
+$new_source->source_name("Bookmark_add");
 
 1;

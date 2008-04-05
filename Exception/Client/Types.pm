@@ -6,6 +6,10 @@ package Exception::Client::InvalidCredentials;
 use base qw/Exception::Client/;
 1;
 
+package Exception::Client::InvalidMessage;
+use base qw/Exception::Client/;
+1;
+
 package Exception::Client::InvalidObject;
 use base qw/Exception::Client/;
 1;

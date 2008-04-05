@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS bookmark
 	title VARCHAR,
 	lft INTEGER NOT NULL,
 	rgt INTEGER NOT NULL,
+	level INTEGER NOT NULL,
 	file INTEGER NOT NULL,
 	created DATETIME DEFAULT CURRENT_TIMESTAMP,
 	modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -87,3 +88,11 @@ CREATE TABLE IF NOT EXISTS linktag
 	FOREIGN KEY (link) REFERENCES link(id) ON DELETE CASCADE
 );
 
+CREATE VIEW IF NOT EXISTS bookmarkdepth AS
+	select child.id, (COUNT(parent.title) - 1) as depth
+	from bookmark as child,
+	bookmark as parent
+	where child.lft between parent.lft and parent.rgt
+	and child.file=parent.file
+	group by child.title
+	order by child.lft;

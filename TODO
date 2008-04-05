@@ -6,3 +6,5 @@ all child classes.
 - every call to fields method would overwrite all previous data for calling class
 - make sure logger and model are only being loaded once
 - UNIVERSAL::require errors are not being properly thrown and caught
+- update DBIx::Class error handling so that we don't get nested exceptions
+  - change the anonymous sub that wraps the default DBIx::Class exception in Schema.pm

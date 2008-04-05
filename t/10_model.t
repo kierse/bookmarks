@@ -102,19 +102,19 @@ my $bookmark_rs = $schema->resultset("Bookmark");
 my @Bookmarks = $bookmark_rs->populate
 (
 	[
-		{id => 0, title => "A", lft => 0, rgt => 25, file => 5},
-		{id => 1, title => "B", lft => 1, rgt => 10, file => 5},
-		{id => 2, title => "C", lft => 11, rgt => 24, file => 5},
-		{id => 3, title => "D", lft => 2, rgt => 3, file => 5},
-		{id => 4, title => "E", lft => 4, rgt => 9, file => 5},
-		{id => 5, title => "F", lft => 12, rgt => 13, file => 5},
-		{id => 6, title => "G", lft => 14, rgt => 23, file => 5},
-		{id => 7, title => "H", lft => 5, rgt => 6, file => 5},
-		{id => 8, title => "I", lft => 7, rgt => 8, file => 5},
-		{id => 9, title => "J", lft => 15, rgt => 22, file => 5},
-		{id => 10, title => "K", lft => 16, rgt => 17, file => 5},
-		{id => 11, title => "L", lft => 18, rgt => 19, file => 5},
-		{id => 12, title => "M", lft => 20, rgt => 21, file => 5},
+		{id => 0, title => "A", lft => 0, rgt => 25, level => 0, file => 5},
+		{id => 1, title => "B", lft => 1, rgt => 10, level => 1, file => 5},
+		{id => 2, title => "C", lft => 11, rgt => 24, level => 1, file => 5},
+		{id => 3, title => "D", lft => 2, rgt => 3, level => 2, file => 5},
+		{id => 4, title => "E", lft => 4, rgt => 9, level => 2, file => 5},
+		{id => 5, title => "F", lft => 12, rgt => 13, level => 2, file => 5},
+		{id => 6, title => "G", lft => 14, rgt => 23, level => 2, file => 5},
+		{id => 7, title => "H", lft => 5, rgt => 6, level => 3, file => 5},
+		{id => 8, title => "I", lft => 7, rgt => 8, level => 3, file => 5},
+		{id => 9, title => "J", lft => 15, rgt => 22, level => 3, file => 5},
+		{id => 10, title => "K", lft => 16, rgt => 17, level => 4, file => 5},
+		{id => 11, title => "L", lft => 18, rgt => 19, level => 4, file => 5},
+		{id => 12, title => "M", lft => 20, rgt => 21, level => 4, file => 5},
 	],
 );
 ok(scalar @Bookmarks, "inserting bookmarks into database");
@@ -123,7 +123,7 @@ ok(scalar @Bookmarks, "inserting bookmarks into database");
 Exception->flush();
 try
 {
-	$bookmark_rs->create({id => 13, title => "invalid", lft => 0, rgt => 25, file => 5});
+	$bookmark_rs->create({id => 13, title => "invalid", lft => 0, rgt => 25, level => 0, file => 5});
 }
 catch Exception::Server::Database with
 {

@@ -15,11 +15,11 @@ sub add
 	my ($class, $request, $response) = @_;
 	my $args = $request->args();
 
-	throw Exception::Client::WrongNumberOfArgs(__PACKAGE__ . "::add expects one and only one argument")
-		unless scalar @$args eq 1;
+	throw Exception::Client::WrongNumberOfArgs($request->handler() . "->add expects one or more arguments")
+		unless scalar @$args;
 	
-	throw Exception::Client::InvalidRequestData(__PACKAGE__ . "::add expects an object argument")
-		unless ref $args->[0] eq "HASH";
+	throw Exception::Client::InvalidRequestData($request->handler() . "->add expects arguments of type object")
+		if grep { ref $_ ne "HASH" } @$args;
 }
 
 sub update
