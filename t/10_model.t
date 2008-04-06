@@ -72,12 +72,12 @@ my $file_rs = $schema->resultset("File");
 my @Files = $file_rs->populate
 (
 	[
-		{id => 0, name => "fileA", owner => 0, description => "userA's first file", writeable => 0, private => 1},
-		{         name => "fileB", owner => 0, description => "userA's second file", writeable => 0, private => 1},
-		{         name => "fileC", owner => 1, description => "userB's first file", writeable => 1, private => 0},
-		{id => 3, name => "fileD", owner => 1, description => "userB's second file", writeable => 0, private => 0},
-		{         name => "fileE", owner => 2, description => "userC's first file", writeable => 0, private => 0},
-		{id => 5, name => "fileF", owner => 2, description => "userC's second file", writeable => 0, private => 1},
+		{id => 0, name => "fileA", owner => 0, description => "userA's first file"},
+		{         name => "fileB", owner => 0, description => "userA's second file"},
+		{         name => "fileC", owner => 1, description => "userB's first file"},
+		{id => 3, name => "fileD", owner => 1, description => "userB's second file"},
+		{         name => "fileE", owner => 2, description => "userC's first file"},
+		{id => 5, name => "fileF", owner => 2, description => "userC's second file"},
 	],
 );
 ok(scalar @Files, "inserting files into database");

@@ -17,8 +17,7 @@ CREATE TABLE IF NOT EXISTS file
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name VARCHAR(50) NOT NULL,
 	owner INTEGER NOT NULL,
-	writeable BOOLEAN DEFAULT 0 NOT NULL,
-	private BOOLEAN DEFAULT 1 NOT NULL,
+--	private BOOLEAN DEFAULT 1 NOT NULL,
 	created DATETIME DEFAULT CURRENT_TIMESTAMP,
 	modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	revision INTEGER UNSIGNED DEFAULT 0,
@@ -80,19 +79,18 @@ CREATE TABLE IF NOT EXISTS linktag
 (
 	tag INTEGER NOT NULL,
 	link INTEGER NOT NULL,
-	created DATETIME DEFAULT CURRENT_TIMESTAMP,
-	modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	revision INTEGER UNSIGNED DEFAULT 0,
 	PRIMARY KEY (tag, link),
 	FOREIGN KEY (tag) REFERENCES tag(id) ON DELETE CASCADE,
 	FOREIGN KEY (link) REFERENCES link(id) ON DELETE CASCADE
 );
 
-CREATE VIEW IF NOT EXISTS bookmarkdepth AS
-	select child.id, (COUNT(parent.title) - 1) as depth
-	from bookmark as child,
-	bookmark as parent
-	where child.lft between parent.lft and parent.rgt
-	and child.file=parent.file
-	group by child.title
-	order by child.lft;
+CREATE TABLE IF NOT EXISTS fileuser
+(
+	file INTEGER NOT NULL,
+	user INTEGER NOT NULL,
+	modify BOOLEAN DEFAULT 0 NOT NULL,
+	PRIMARY KEY (file, user),
+	FOREIGN KEY (file) REFERENCES file(id) ON DELETE CASCADE,
+	FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
+);
+

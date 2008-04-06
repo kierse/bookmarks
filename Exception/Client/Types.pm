@@ -30,6 +30,10 @@ package Exception::Client::MissingTokenData;
 use base qw/Exception::Client/;
 1;
 
+package Exception::Client::PermissionDenied;
+use base qw/Exception::Client/;
+1;
+
 package Exception::Client::UnknownField;
 use base qw/Exception::Client/;
 1;

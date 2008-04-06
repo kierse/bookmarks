@@ -98,54 +98,58 @@ sub add
 
 	my $args = $request->args();
 
-	# add bookmark method #1
-	# caller has passed a series of arguments, each of which contains
-	# hierarchy and positional information.  No need to do any calculations
-	# on the given lft and rgt values.
+	# grab list of files that user has access to
+
+	my @Parents = map { $_->{_parent} } @$args;
+	$model->resultset('Bookmark')->search
+	(
+		{file = 
+	);
+
 	my $bookmarks;
-	if (exists $args->[0]{lft})
+	my %Files;
+	foreach my $bookmark (@$bookmarks)
 	{
-	}
+		my $fileID = $bookmark->{file};
 
-	# add bookmark method #2
-	# caller has passed a list of arguments which contain parent
-	# and folder position information.  Need to translate this data
-	# into lft and rgt values for storage in database.
-	else
-	{
-		my @Parents = map { $_->{_parent} } @$args;
-		$model->resultset('bookmark')->search
-		(
-			
-		);
-
-		foreach my $bookmark (@$args)
+		# before we proceed, make sure caller has permission
+		# to make changes to current file
+		unless ($Files{$fileID})
 		{
-			my $parent = $model->resultset('bookmark')->find($bookmark->{_parent});
+			my $file = $model->resultset('Bookmark')->file($fileID);
+			$file->canWrite($token->user())
+				? $Files{$fileID} = 1
+				: throw Exception::Client::PermissionDenied("You do not have permission to make changes to file '" . $file->name() . "'");
+		}
+
+		# add bookmark method #1
+		# caller has passed a series of arguments, each of which contains
+		# hierarchy and positional information.  No need to do any calculations
+
+		# add bookmark method #2
+		# caller has passed a list of arguments which contain parent
+		# and folder position information.  Need to translate this data
+		# into lft and rgt values for storage in database.
+		if (not exists $bookmark->{lft})
+		{
+			my $parent = $model->resultset('Bookmark')->find($bookmark->{_parent});
 			my $level = $parent->level() + 1;
 
-			my @Siblings = $model->resultset('bookmark')->search
+			my @Siblings = $model->resultset('Bookmark')->search
 			(
 				{file => $bookmark->{file}},
 				{level => $level},
 				{lft => [$parent->lft(), $parent->rgt()]},
 			);
 		}
-	}
 
-	# now that we've got a list of bookmarks to insert,
-	# loop through them and make room in the existing tree
-	foreach my $bookmark (@$bookmarks)
-	{
-		my $file = $bookmark->{file};
+
 		my $left = $bookmark->{lft};
 		my $right = $bookmark->{rgt};
 
 		# alter tree to make room for current bookmark by:
 		# 1. updating all nodes where rgt > $left - 1 to be rgt=rgt+2
 		# 2. updating all nodes where lft > $left - 1 to be lft=lft+2
-		#$model->resultset('Bookmark')->search_rs({file=> $file},{rgt => {'>', $left-1}})->update({rgt => "rgt+2"});
-		#$model->resultset('Bookmark')->search_rs({file=> $file},{lft => {'>', $left-1}})->update({lft => "lft+2"});
 		my $dbh = $model->storage->dbh();
 
 		my $sth = $dbh->prepare("UPDATE bookmark SET rgt=rgt+2 WHERE file=? AND rgt > ?");

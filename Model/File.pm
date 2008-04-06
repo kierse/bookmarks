@@ -31,20 +31,13 @@ __PACKAGE__->add_columns
 		'is_nullable' => 0,
 		'is_foreign_key' => 1,
 	},
-	'writeable' =>
-	{
-		'accessor' => 'writeable',
-		'data_type' => 'BOOLEAN',
-		'default_value' => 0,
-		'is_nullable' => 0,
-	},
-	'private' =>
-	{
-		'accessor' => 'private',
-		'data_type' => 'BOOLEAN',
-		'default_value' => 1,
-		'is_nullable' => 0,
-	},
+#	'private' =>
+#	{
+#		'accessor' => 'private',
+#		'data_type' => 'BOOLEAN',
+#		'default_value' => 1,
+#		'is_nullable' => 0,
+#	},
 	'created' =>
 	{
 		'accessor' => 'created',
@@ -83,5 +76,9 @@ __PACKAGE__->belongs_to("owner" => "Model::User");
 
 # define one-to-many relationship with Model::Bookmark
 __PACKAGE__->has_many("file_bookmarks" => "Model::Bookmark", "file");
+
+# define many-to-many relationship with Model::User
+__PACKAGE__->has_many("file_users" => "Model::FileUser", "file");
+__PACKAGE__->many_to_many("users_who_have_access" => "file_users", "user");
 
 1;

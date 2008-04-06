@@ -96,8 +96,4 @@ __PACKAGE__->belongs_to("file" => "Model::File", undef, {cascade_delete => 1});
 __PACKAGE__->might_have("bookmark_folder", "Model::Folder", "id");
 __PACKAGE__->might_have("bookmark_link", "Model::Link", "id");
 
-my $source = __PACKAGE__->result_source_instance();
-my $new_source = $source->new($source);
-$new_source->source_name("Bookmark_add");
-
 1;

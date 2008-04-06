@@ -59,9 +59,38 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint(["username"]);
 
 # declare any one-to-many relationships
-__PACKAGE__->has_many("user_files" => "Model::File", "owner");
+__PACKAGE__->has_many("owns_files" => "Model::File", "owner");
+
+# define many-to-many relationship with Model::File
+__PACKAGE__->has_many("user_files" => "Model::FileUser", "user");
+__PACKAGE__->many_to_many("access_to_files" => "user_files", "file");
 
 # public methods- - - - - - - - - - - - - - - - - - - - - - -
+
+sub get_files_and_access
+{
+	my ($this) = @_;
+
+	my $model = Controller->get_model();
+
+	# retrieve files where current user is:
+	# 	a) owner
+	# 	b) has access to
+	my @Files = $model->resultset("File")->search
+	(
+		{
+			-or => 
+			[
+				file => $this->id(),
+				'fileuser.modify' => $this->id(),
+			],
+		},
+		{
+			prefetch => ["fileuser"],
+		}
+	);
+	
+}
 
 sub encrypt_password 
 {
