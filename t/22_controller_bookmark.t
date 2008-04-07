@@ -185,8 +185,6 @@ SKIP:
 			{title => "2p", file => 1, _parent => $Parents[2]->id(), _position => 0},
 		],
 	};
-	$size += scalar @{$request->args};
-	$rgt += 2 * scalar @{$request->args};
 
 	$response = Controller->request($request);
 

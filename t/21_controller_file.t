@@ -31,8 +31,6 @@ my $request =
 			name => "fileG", 
 			owner => 0,
 			description => "Test fileG",
-			writeable => 0,
-			private => 1,
 		},
 	],
 };
@@ -73,7 +71,6 @@ $request =
 		},
 		{
 			description => "Test fileG is now a public file!",
-			private => 0,
 		},
 	],
 };
@@ -95,7 +92,6 @@ SKIP:
 	);
 
 	is($file->description(), "Test fileG is now a public file!", "verify updated file description");
-	is($file->private(), 0, "verify updated file private flag");
 };
 
 diag $response->error()->stringify() if $response->status eq -1;
