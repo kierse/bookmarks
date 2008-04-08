@@ -5,12 +5,11 @@ use warnings;
 
 use Config::General;
 use Error qw/:try/;
-use Log::Log4perl;
 
 use base qw/JSON::RPC::Procedure/;
 
 use Exception::Server::Types;
-use Message::Envelope;
+use Logger;
 use Message::Request;
 use Message::Response;
 use Schema;
@@ -20,8 +19,6 @@ use Schema;
 our %CONFIGS;
 
 our $SCHEMA;
-
-our $LOGGER;
 
 # public methods- - - - - - - - - - - - - - - - - - - - - - -
 
@@ -93,14 +90,13 @@ sub get_model : Private { return $SCHEMA; }
 
 sub get_configs : Private { return %CONFIGS; }
 
-sub get_logger : Private { return $LOGGER; }
-
 # private methods - - - - - - - - - - - - - - - - - - - - - -
 
 sub _init : Private
 {
 	# initialize logger
-	$LOGGER = Log::Log4perl->init_once($ENV{'BOOKMARKS_CONFIG_PATH'} . "/logging.conf");
+	Logger->init($ENV{'BOOKMARKS_CONFIG_PATH'} . "/logging.conf");
+	my $logger = Logger->get_logger();
 	
 	# read in server config file
 	unless (defined %CONFIGS)

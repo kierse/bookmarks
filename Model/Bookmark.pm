@@ -96,4 +96,21 @@ __PACKAGE__->belongs_to("file" => "Model::File", undef, {cascade_delete => 1});
 __PACKAGE__->might_have("bookmark_folder", "Model::Folder", "id");
 __PACKAGE__->might_have("bookmark_link", "Model::Link", "id");
 
+# public methods- - - - - - - - - - - - - - - - - - - - - - -
+
+sub get_children
+{
+	my ($this) = @_;
+	my $model = Controller->get_model();
+
+	return $model->resultset('Bookmark')->search
+	(
+		{
+			file => $this->file(),
+			level => $this->level() + 1,
+			lft => {-between => [$this->lft(), $this->rgt()]},
+		},
+	);
+}
+
 1;

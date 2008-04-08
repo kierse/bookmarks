@@ -6,8 +6,20 @@ use Exception;
 use Exception::Server::Types;
 
 # set default exception handler
-__PACKAGE__->exception_action(sub { throw Exception::Server::Database(@_); print ""; });
+__PACKAGE__->exception_action
+(
+	sub 
+	{ 
+###	my $e = shift;
 
-__PACKAGE__->load_classes({"Model" => [qw/User Bookmark Folder Link File Tag LinkTag/]});
+###	# rethrow error if its an exception object
+###	throw $e unless ref $e && $e->isa("Exception");
+
+		# otherwise, generate new exception and throw
+		throw Exception::Server::Database(@_); #print ""; 
+	}
+);
+
+__PACKAGE__->load_classes({"Model" => [qw/User Bookmark Folder Link File Tag LinkTag FileUser/]});
 
 1;

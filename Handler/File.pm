@@ -3,9 +3,9 @@ package Handler::File;
 use strict;
 use warnings;
 
-use Exception;
-use Exception::Client::Types;
 use Controller;
+use Exception::Client::Types;
+use Logger;
 
 use base qw/Handler/;
 
@@ -21,7 +21,7 @@ sub add
 	$class->SUPER::add(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 
@@ -43,7 +43,7 @@ sub update
 	$class->SUPER::update(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 
@@ -77,7 +77,7 @@ sub delete
 	$class->SUPER::delete(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 

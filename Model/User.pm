@@ -67,29 +67,38 @@ __PACKAGE__->many_to_many("access_to_files" => "user_files", "file");
 
 # public methods- - - - - - - - - - - - - - - - - - - - - - -
 
-sub get_files_and_access
+sub get_files
 {
-	my ($this) = @_;
-
+	my ($this, $modify) = @_;
 	my $model = Controller->get_model();
 
+	my $or_clause = [owner => $this->id()];
+	if (defined $modify)
+	{
+		push @$or_clause, 'file_users.user' => $this->id();
+	}
+	else
+	{
+		my $and_clause = 
+		[
+			'file_users.user' => $this->id(),
+			'file_users.modify' => $modify,
+		];
+
+		push @$or_clause, "-and" => $and_clause;
+	}
+
 	# retrieve files where current user is:
-	# 	a) owner
-	# 	b) has access to
-	my @Files = $model->resultset("File")->search
+	# 	a) owner, or
+	# 	b) has access to (via FileUser table)
+	return $model->resultset("File")->search
 	(
+		{-or => $or_clause},
 		{
-			-or => 
-			[
-				file => $this->id(),
-				'fileuser.modify' => $this->id(),
-			],
-		},
-		{
-			prefetch => ["fileuser"],
+			join => ["file_users"],
+#			+select => "file_users.modify",
 		}
 	);
-	
 }
 
 sub encrypt_password 

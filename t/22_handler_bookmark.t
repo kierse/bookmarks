@@ -201,3 +201,5 @@ SKIP:
 	diag $response->error()->stringify() if $response->status eq -1;
 };
 
+# UPDATE existing bookmarks
+

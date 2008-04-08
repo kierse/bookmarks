@@ -3,9 +3,9 @@ package Handler::Bookmark;
 use strict;
 use warnings;
 
-use Exception;
-use Exception::Client::Types;
 use Controller;
+use Exception::Client::Types;
+use Logger;
 
 use base qw/Handler/;
 
@@ -18,7 +18,7 @@ sub buildHierarchy
 	my ($class, $request, $response) = @_;
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 
@@ -90,25 +90,19 @@ sub add
 {
 	my $class = shift;
 	my ($request, $response) = @_;
+	my $user = $request->token()->user();
 
 	$class->SUPER::add(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
-
-	my $args = $request->args();
+	my $logger = Logger->get_logger();
 
 	# grab list of files that user has access to
-
-	my @Parents = map { $_->{_parent} } @$args;
-	$model->resultset('Bookmark')->search
-	(
-		{file = 
-	);
-
-	my $bookmarks;
-	my %Files;
-	foreach my $bookmark (@$bookmarks)
+	# parse and get list of files user has write permissions on
+	my %Files = map { $_->id() => $_ } $user->get_files(1);
+	
+	my %SiblingsCache;
+	foreach my $bookmark (@{$request->args()})
 	{
 		my $fileID = $bookmark->{file};
 
@@ -116,10 +110,8 @@ sub add
 		# to make changes to current file
 		unless ($Files{$fileID})
 		{
-			my $file = $model->resultset('Bookmark')->file($fileID);
-			$file->canWrite($token->user())
-				? $Files{$fileID} = 1
-				: throw Exception::Client::PermissionDenied("You do not have permission to make changes to file '" . $file->name() . "'");
+			my $file = $model->resultset('File')->find($fileID);
+			throw Exception::Client::PermissionDenied("You do not have permission to make changes to file '" . $file->name() . "'");
 		}
 
 		# add bookmark method #1
@@ -130,19 +122,56 @@ sub add
 		# caller has passed a list of arguments which contain parent
 		# and folder position information.  Need to translate this data
 		# into lft and rgt values for storage in database.
-		if (not exists $bookmark->{lft})
+		if (exists $bookmark->{_parent})
 		{
 			my $parent = $model->resultset('Bookmark')->find($bookmark->{_parent});
-			my $level = $parent->level() + 1;
 
-			my @Siblings = $model->resultset('Bookmark')->search
-			(
-				{file => $bookmark->{file}},
-				{level => $level},
-				{lft => [$parent->lft(), $parent->rgt()]},
-			);
+			$SiblingsCache{$parent} = [$parent->get_children()]
+				unless $SiblingsCache{$parent};
+
+			$bookmark->{level} = $parent->level() + 1;
+
+			# loop through the list of siblings and determine what the current
+			# bookmarks lft and rgt values 
+
+			# if there aren't any siblings, it doesn't matter what
+			# the set position is.  Determine bookmarks lft and rgt using 
+			# parent values.
+			my @Siblings = @{$SiblingsCache{$parent}};
+			if (not (my $size = scalar @Siblings))
+			{
+				$bookmark->{lft} = $parent->lft() + 1;
+				$bookmark->{rgt} = $parent->lft() + 2;
+			}
+
+			# check if bookmark position is 0
+			elsif ($bookmark->{_position} == 0)
+			{
+				die $Siblings[0];
+				$bookmark->{lft} = $Siblings[0]->lft();
+				$bookmark->{rgt} = $Siblings[0]->lft() + 1;
+			}
+
+			# check if bookmark position is last
+			elsif ($size <= $bookmark->{_position})
+			{
+				$bookmark->{lft} = $Siblings[$size - 1]->lft();
+				$bookmark->{rgt} = $Siblings[$size - 1]->lft() + 1;
+			}
+
+			# bookmark position must fall between two existing bookmarks
+			else
+			{
+				my $position = $bookmark->{_position};
+				$bookmark->{lft} = $Siblings[$position]->lft();
+				$bookmark->{rgt} = $Siblings[$position]->lft() + 1;
+			}
+
+			# remove _parent and _position data as they are 
+			# no longer needed...
+			delete $bookmark->{_parent};
+			delete $bookmark->{_position};
 		}
-
 
 		my $left = $bookmark->{lft};
 		my $right = $bookmark->{rgt};
@@ -174,7 +203,7 @@ sub update
 	$class->SUPER::update(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 
@@ -189,7 +218,7 @@ sub delete
 	$class->SUPER::delete(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 

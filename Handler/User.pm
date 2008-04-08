@@ -3,9 +3,9 @@ package Handler::User;
 use strict;
 use warnings;
 
-use Exception;
-use Exception::Server::Types;
 use Controller;
+use Exception::Server::Types;
+use Logger;
 
 use base qw/Handler/;
 
@@ -21,7 +21,7 @@ sub add
 	$class->SUPER::add(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 
@@ -42,7 +42,7 @@ sub update
 	$class->SUPER::update(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 	my $user = $request->token()->user();
@@ -80,7 +80,7 @@ sub delete
 	$class->SUPER::delete(@_);
 
 	my $model = Controller->get_model();
-	my $logger = Controller->get_configs();
+	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
 	my $user = $request->token()->user();
@@ -93,11 +93,6 @@ sub delete
 			($args->[0]{"username"} && $args->[0]{"username"} eq $user->username());
 
 	$user->delete();
-#	my $user = $args->[0]{"id"}
-#		? $model->resultset('User')->find($args->[0]{"id"})->delete()
-#		: $model->resultset('User')->find($args->[0]{"username"}, {key=>'user_username'})->delete();
-#
-#	return unless ref $user;
 
 	# set the response status to 1 unless the user 
 	# object wasn't deleted
