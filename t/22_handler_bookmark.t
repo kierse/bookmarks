@@ -24,7 +24,7 @@ my $request =
 {
 	token => { username => 'userA', password => 'pass' },
 	handler => 'Bookmark',
-	method => 'buildHierarchy',
+	method => 'import_tree',
 	args => 
 	[
 		{title => "1a", lft => 0, rgt => 25, level => 0, file => 0},
@@ -66,7 +66,7 @@ $request =
 {
 	token => { username => 'userA', password => 'pass' },
 	handler => 'Bookmark',
-	method => 'buildHierarchy',
+	method => 'import_tree',
 	args => 
 	[
 		{

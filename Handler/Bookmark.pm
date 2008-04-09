@@ -13,7 +13,7 @@ use base qw/Handler/;
 
 # public methods- - - - - - - - - - - - - - - - - - - - - - -
 
-sub buildHierarchy
+sub import_tree
 {
 	my ($class, $request, $response) = @_;
 
@@ -225,5 +225,10 @@ sub delete
 }
 
 # private methods - - - - - - - - - - - - - - - - - - - - - -
+
+sub _calculate_nested_tree_values
+{
+	my ($request, $bookmarks) = @_;
+}
 
 1;

@@ -16,6 +16,8 @@ use Schema;
 
 # variables - - - - - - - - - - - - - - - - - - - - - - - - -
 
+my $config_path = "BOOKMARKS_CONFIG_PATH";
+
 our %CONFIGS;
 
 our $SCHEMA;
@@ -94,17 +96,26 @@ sub get_configs : Private { return %CONFIGS; }
 
 sub _init : Private
 {
+	throw Exception::Server::InvalidConfiguration("Undefined environment variable: BOOKMARKS_CONFIG_PATH")
+		unless $ENV{$config_path};
+
+	throw Exception::Server::FileNotFound("Missing config file at ". $ENV{$config_path} . "/log4perl.conf")
+		unless -e $ENV{$config_path} . "/log4perl.conf";
+
 	# initialize logger
-	Logger->init($ENV{'BOOKMARKS_CONFIG_PATH'} . "/logging.conf");
+	Logger->init($ENV{$config_path} . "/log4perl.conf");
 	my $logger = Logger->get_logger();
 	
 	# read in server config file
 	unless (defined %CONFIGS)
 	{
+		throw Exception::Server::FileNotFound("Missing config file at ". $ENV{$config_path} . "/application.conf")
+			unless -e $ENV{$config_path} . "/application.conf";
+
 		%CONFIGS = Config::General->new
 		(
-			'-ConfigPath' => $ENV{'BOOKMARKS_CONFIG_PATH'},
-			'-ConfigFile' => "bookmarks.conf",
+			'-ConfigPath' => $ENV{$config_path},
+			'-ConfigFile' => "application.conf",
 		)->getall();
 	}
 

@@ -2,6 +2,14 @@ package Exception::Server::Database;
 use base qw/Exception::Server/;
 1;
 
+package Exception::Server::FileNotFound;
+use base qw/Exception::Server/;
+1;
+
+package Exception::Server::InvalidConfiguration;
+use base qw/Exception::Server/;
+1;
+
 package Exception::Server::InvalidObject;
 use base qw/Exception::Server/;
 1;
