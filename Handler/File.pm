@@ -17,18 +17,19 @@ sub add
 {
 	my $class = shift;
 	my ($request, $response) = @_;
+	my $user = $request->token()->user();
 
 	$class->SUPER::add(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
-	my $args = $request->args();
-
-	# create new file using request data
-	my $file = $model->resultset('File')->create($args->[0]);
-
-	return unless ref $file;
+	# loop through given arguments and create new files
+	foreach my $file (@{$request->args()})
+	{
+		$file->{owner} = $user->id();
+		$model->resultset('File')->create($file);
+	}
 
 	# made it this far, set status to 1 on response
 	$response->status(1);
@@ -38,33 +39,48 @@ sub update
 {
 	my $class = shift;
 	my ($request, $response) = @_;
-	my $token = $request->token();
+	my $user = $request->token()->user();
 
 	$class->SUPER::update(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
-	my $args = $request->args();
+	foreach my $rFile (@{$request->args()})
+	{
+		throw Exception::Client::MissingRequestData($request->handler() . "->update requires a valid file name or id")
+			unless defined $rFile->{"id"} || defined $rFile->{"name"};
+		
+		# retrieve the file being updated...
+		my @Args;
+		if ($rFile->{id})
+		{
+			@Args = ($rFile->{id});
+		}
+		{
+			@Args = 
+			(
+				{
+					name => $rFile->{"name"}, 
+					owner => $user->id(),
+				}, 
+				{ key => 'file_name_owner' },
+			);
+		}
 
-	throw Exception::Client::MissingRequestData(__PACKAGE__ . "::update requires a valid file name or id")
-		unless defined $args->[0]{"id"} || defined $args->[0]{"name"};
-	
-	# retrieve the file being updated...
-	my $file = $args->[0]{"id"}
-		? $model->resultset('File')->find($args->[0]{"id"})
-		: $model->resultset('File')->find({name => $args->[0]{"name"}, owner => $token->user()->id()}, {key=>'file_name_owner'});
+		my $file = Model::File->get_by_key(@Args);
 
-	return unless ref $file;
+		# sanitize given data to ensure caller isn't trying to update
+		# any locked fields
+		delete $rFile->{_update}{id};
+		delete $rFile->{_update}{owner};
 
-	# sanitize given data to ensure caller isn't trying to update
-	# any locked fields
-	delete $args->[1]{"id"};
-	delete $args->[1]{"owner"};
+		# increment file revision number
+		$rFile->{_update}{revision} = $file->revision() + 1;
 
-	# attempt to update file object using given data
-	# set status on response object with results of update
-	$file->update($args->[1]);
+		$file->update($rFile->{_update});
+	}
+
 	$response->status(1);
 }
 
@@ -72,43 +88,42 @@ sub delete
 {
 	my $class = shift;
 	my ($request, $response) = @_;
-	my $token = $request->token();
+	my $user = $request->token()->user();
 
 	$class->SUPER::delete(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
-	my $args = $request->args();
-
-	throw Exception::Client::MissingRequestData(__PACKAGE__ . "::delete requires a valid file name or id")
-		unless defined $args->[0]{"id"} || defined $args->[0]{"name"};
-
-	my $file;
-	if ($args->[0]{"id"})
+	foreach my $file (@{$request->args()})
 	{
-		$file = $model->resultset('File')->find($args->[0]{"id"});
-	}
-	else
-	{
-		my @Files = $model->resultset('File')->find({name => $args->[0]{"name"}, owner => $token->user()->id()}, {key=>'file_name_owner'});
-		if (scalar @Files)
+		throw Exception::Client::MissingRequestData($request->handler() . "->delete requires a valid file name or id")
+			unless defined $file->{"id"} || defined $file->{"name"};
+
+		my @Args;
+		if ($file->{id})
 		{
-			$file = (scalar @Files == 1)
-				? pop @Files
-				: throw Exception::Client::InvalidRequest("Given file name is not unique");
+
 		}
+		else
+		{
+			@Args = 
+			{
+				name => $file->{name},
+				owner => $user->id(),
+			},
+			{ key => 'file_name_owner' },
+		}
+
+		# delete file
+		my $file = Model::File->get_by_key(@Args);
+		$file->delete();
+
+		throw Exception::Server::Database("Deletion of file '$file->name()' failed")
+			if $file->in_storage();
 	}
 
-	throw Exception::Client::InvalidRequest("No file by the name of '$args->[0]{name}' found")
-		unless ref $file;
-
-	# delete file
-	$file->delete();
-
-	# set the response status to 1 unless the file
-	# object wasn't deleted
-	$response->status(1) unless $file->in_storage();
+	$response->status(1);
 }
 
 # private methods - - - - - - - - - - - - - - - - - - - - - -

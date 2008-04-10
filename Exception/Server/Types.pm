@@ -18,6 +18,14 @@ package Exception::Server::InvalidRequest;
 use base qw/Exception::Server/;
 1;
 
+package Exception::Server::ObjectNotFound;
+use base qw/Exception::Server/;
+1;
+
+package Exception::Server::PermissionDenied;
+use base qw/Exception::Server/;
+1;
+
 package Exception::Server::UNIVERSALRequireFailure;
 use base qw/Exception::Server/;
 1;

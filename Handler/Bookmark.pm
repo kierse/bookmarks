@@ -16,11 +16,17 @@ use base qw/Handler/;
 sub import_tree
 {
 	my ($class, $request, $response) = @_;
+	my $user = $request->token()->user();
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
+
+	# first things first, make sure user has write permission to modify the 
+	# file they are trying to import into.  Retrieve the file and check users 
+	# access level
+	Model::File->get_by_key($args->[0]{file})->assert_access($user, 1);
 
 	# import method #1
 	# caller has passed a series of arguments, each of which contains
@@ -97,22 +103,13 @@ sub add
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
-	# grab list of files that user has access to
-	# parse and get list of files user has write permissions on
-	my %Files = map { $_->id() => $_ } $user->get_files(1);
-	
 	my %SiblingsCache;
 	foreach my $bookmark (@{$request->args()})
 	{
-		my $fileID = $bookmark->{file};
-
 		# before we proceed, make sure caller has permission
 		# to make changes to current file
-		unless ($Files{$fileID})
-		{
-			my $file = $model->resultset('File')->find($fileID);
-			throw Exception::Client::PermissionDenied("You do not have permission to make changes to file '" . $file->name() . "'");
-		}
+		my $file = Model::File->get_by_key($bookmark->{file});
+		$file->assert_access($user, 1);
 
 		# add bookmark method #1
 		# caller has passed a series of arguments, each of which contains
@@ -127,51 +124,26 @@ sub add
 			my $parent = $model->resultset('Bookmark')->find($bookmark->{_parent});
 
 			$SiblingsCache{$parent} = [$parent->get_children()]
-				unless $SiblingsCache{$parent};
+				unless exists $SiblingsCache{$parent};
 
-			$bookmark->{level} = $parent->level() + 1;
-
-			# loop through the list of siblings and determine what the current
-			# bookmarks lft and rgt values 
-
-			# if there aren't any siblings, it doesn't matter what
-			# the set position is.  Determine bookmarks lft and rgt using 
-			# parent values.
-			my @Siblings = @{$SiblingsCache{$parent}};
-			if (not (my $size = scalar @Siblings))
-			{
-				$bookmark->{lft} = $parent->lft() + 1;
-				$bookmark->{rgt} = $parent->lft() + 2;
-			}
-
-			# check if bookmark position is 0
-			elsif ($bookmark->{_position} == 0)
-			{
-				die $Siblings[0];
-				$bookmark->{lft} = $Siblings[0]->lft();
-				$bookmark->{rgt} = $Siblings[0]->lft() + 1;
-			}
-
-			# check if bookmark position is last
-			elsif ($size <= $bookmark->{_position})
-			{
-				$bookmark->{lft} = $Siblings[$size - 1]->lft();
-				$bookmark->{rgt} = $Siblings[$size - 1]->lft() + 1;
-			}
-
-			# bookmark position must fall between two existing bookmarks
-			else
-			{
-				my $position = $bookmark->{_position};
-				$bookmark->{lft} = $Siblings[$position]->lft();
-				$bookmark->{rgt} = $Siblings[$position]->lft() + 1;
-			}
+			($bookmark->{lft}, $bookmark->{rgt}) = _calculate_nested_tree_values
+			(
+				$bookmark, 
+				$parent, 
+				@{$SiblingsCache{$parent}}
+			);
 
 			# remove _parent and _position data as they are 
 			# no longer needed...
 			delete $bookmark->{_parent};
 			delete $bookmark->{_position};
+
+			$bookmark->{level} = $parent->level() + 1;
 		}
+
+		# update revision number
+		$file->update({revision => $file->revision() + 1});
+		$bookmark->{revision} = $file->revision();
 
 		my $left = $bookmark->{lft};
 		my $right = $bookmark->{rgt};
@@ -198,15 +170,27 @@ sub update
 {
 	my $class = shift;
 	my ($request, $response) = @_;
-	my $token = $request->token();
+	my $user = $request->token()->user();
 
 	$class->SUPER::update(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
-	my $args = $request->args();
+	my %SiblingsCache;
+	foreach my $bookmark (@{$request->args()})
+	{
+		# before we proceed, make sure caller has permission
+		# to make changes to current file
+		my $file = Model::File->get_by_key($bookmark->{file});
+		$file->assert_access($user, 1);
 
+		# things you can do to a bookmark:
+		#  1. update title
+		#  2. alter tree position
+		#  3. change file (must include new tree position)
+
+	}
 }
 
 sub delete
@@ -228,7 +212,45 @@ sub delete
 
 sub _calculate_nested_tree_values
 {
-	my ($request, $bookmarks) = @_;
+	my ($bookmark, $parent, @Siblings) = @_;
+
+	my $model = Controller->get_model();
+	my $logger = Logger->get_logger();
+
+	# if there aren't any siblings, it doesn't matter what
+	# the set position is.  Calculate bookmark lft and rgt values
+	# based on parent values
+	my ($left, $right);
+	if (not (my $size = scalar @Siblings))
+	{
+		$left = $parent->lft() + 1;
+		$right = $parent->lft() + 2;
+	}
+
+	# check if bookmark position is 0
+	elsif ($bookmark->{_position} == 0)
+	{
+		die $Siblings[0];
+		$left = $Siblings[0]->lft();
+		$right = $Siblings[0]->lft() + 1;
+	}
+
+	# check if bookmark position is last
+	elsif ($size <= $bookmark->{_position})
+	{
+		$left = $Siblings[$size - 1]->lft();
+		$right = $Siblings[$size - 1]->lft() + 1;
+	}
+
+	# bookmark position must fall between two existing 
+	else
+	{
+		my $position = $bookmark->{_position};
+		$left = $Siblings[$position]->lft();
+		$right = $Siblings[$position]->lft() + 1;
+	}
+
+	return ($left, $right);
 }
 
 1;

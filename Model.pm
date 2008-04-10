@@ -17,6 +17,23 @@ sub new
 	return bless $fields, $class;
 }
 
+sub get_by_key
+{
+	my ($type, @Args) = @_;
+	my $model = Controller->get_model();
+
+	# get object type from calling class
+	$type =~ s/^Model::(\w+)$/$1/g;
+
+	my $obj = $model->resultset($type)->find(@Args);
+	
+	throw Exception::Server::ObjectNotFound("Unable to find $type object")
+		unless ref $obj;
+
+	return $obj;
+}
+
+
 sub TO_JSON
 {
 	my ($this) = @_;

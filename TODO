@@ -8,3 +8,5 @@ all child classes.
 - UNIVERSAL::require errors are not being properly thrown and caught
 - update DBIx::Class error handling so that we don't get nested exceptions
   - change the anonymous sub that wraps the default DBIx::Class exception in Schema.pm
+- create a standard exception message lookup process. Eg. Invalid write permission on Model::File
+- create sql debug handler that writes sql statements to log using log4perl

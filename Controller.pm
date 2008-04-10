@@ -122,6 +122,14 @@ sub _init : Private
 	# connect to database
 	$SCHEMA = Schema->connect($CONFIGS{"db_connect_string"})
 		unless defined $SCHEMA;
+
+	# check if sql debug flag is 1.  If yes, turn on debugging!
+	if ($CONFIGS{'sql_debug'})
+	{
+		#my $ql = DBIx::Class::QueryLog->new();
+		#$SCHEMA->storage->debugobj($ql);
+		$SCHEMA->storage->debug(1);
+	}
 }
 
 1;

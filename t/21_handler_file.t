@@ -29,8 +29,11 @@ my $request =
 	[
 		{
 			name => "fileG", 
-			owner => 0,
 			description => "Test fileG",
+		},
+		{
+			name => "fileH", 
+			description => "Test fileH",
 		},
 	],
 };
@@ -68,9 +71,17 @@ $request =
 	[
 		{
 			name => "fileG", 
+			_update => 
+			{
+				description => "Wow! Test fileG is a file!",
+			}
 		},
 		{
-			description => "Test fileG is now a public file!",
+			name => "fileH", 
+			_update => 
+			{
+				description => "Wow! Test fileH is a file!",
+			}
 		},
 	],
 };
@@ -85,13 +96,13 @@ SKIP:
 	my $file = $model->resultset('File')->find
 	(
 		{
-			name => $request->{args}[0]{name}, 
+			name => $request->{args}[1]{name}, 
 			owner => $request->{token}{id},
 		}, 
 		{key=>'file_name_owner'}
 	);
 
-	is($file->description(), "Test fileG is now a public file!", "verify updated file description");
+	is($file->description(), "Wow! Test fileH is a file!", "verify updated file description");
 };
 
 diag $response->error()->stringify() if $response->status eq -1;
@@ -106,6 +117,9 @@ $request =
 	[
 		{
 			name => "fileG", 
+		},
+		{
+			name => "fileH", 
 		},
 	],
 };

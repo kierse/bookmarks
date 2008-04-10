@@ -81,4 +81,58 @@ __PACKAGE__->has_many("file_bookmarks" => "Model::Bookmark", "file");
 __PACKAGE__->has_many("file_users" => "Model::FileUser", "file");
 __PACKAGE__->many_to_many("users_who_have_access" => "file_users", "user");
 
+# public methods- - - - - - - - - - - - - - - - - - - - - - -
+
+sub assert_access 
+{
+	my ($this, $user, $modify) = @_;
+	my $model = Controller->get_model();
+
+	# if given user is the owner, we are done
+	return 1 if $this->owner()->get_column("id") eq $user->id();
+
+	my $access = $model->resultset('FileUser')->find
+	(
+		{
+			file => $this->id(),
+			user => $user->id(),
+		},
+	);
+
+	# there are three posible options for modify flag:
+	#  1. undefined - given user has access to current file (read or write)
+	#  2. write == 1 - user has write permission (read permission implied)
+	#  3. write == 0 - user specifically does not have write permission
+	if (ref $access && $access->isa("Model::FileUser"))
+	{
+		if (defined $modify)
+		{
+			return 1 if $access->modify() eq $modify;
+		}
+		else
+		{
+			return 1 if $access;
+		}
+	}
+
+	$modify
+		? throw Exception::Server::PermissionDenied("You do not have permission to make changes to file '" . $this->name() . "'")
+		: throw Exception::Server::PermissionDenied("You do not have permission to access file '" . $this->name() . "'");
+}
+
+sub has_access
+{
+	my $access;
+	try
+	{
+		$access = assert_access(@_);
+	}
+	catch Exception::Server::PermissionDenied with
+	{
+		$access = 0;
+	};
+
+	return $access;
+}
+
 1;

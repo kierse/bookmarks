@@ -75,10 +75,6 @@ sub get_files
 	my $or_clause = [owner => $this->id()];
 	if (defined $modify)
 	{
-		push @$or_clause, 'file_users.user' => $this->id();
-	}
-	else
-	{
 		my $and_clause = 
 		[
 			'file_users.user' => $this->id(),
@@ -86,6 +82,10 @@ sub get_files
 		];
 
 		push @$or_clause, "-and" => $and_clause;
+	}
+	else
+	{
+		push @$or_clause, 'file_users.user' => $this->id();
 	}
 
 	# retrieve files where current user is:
@@ -96,7 +96,6 @@ sub get_files
 		{-or => $or_clause},
 		{
 			join => ["file_users"],
-#			+select => "file_users.modify",
 		}
 	);
 }

@@ -38,6 +38,7 @@ sub update
 {
 	my $class = shift;
 	my ($request, $response) = @_;
+	my $user = $request->token()->user();
 
 	$class->SUPER::update(@_);
 
@@ -45,7 +46,6 @@ sub update
 	my $logger = Logger->get_logger();
 
 	my $args = $request->args();
-	my $user = $request->token()->user();
 
 	throw Exception::Client::MissingRequestData(__PACKAGE__ . "::update requires a valid username or id")
 		unless defined $args->[0]{"id"} || defined $args->[0]{"username"};
@@ -53,13 +53,6 @@ sub update
 	throw Exception::Client::IllegalRequest("Unable to perform update.  Requesting user and update data does not match")
 		unless ($args->[0]{"id"} && $args->[0]{"id"} eq $user->id()) || 
 			($args->[0]{"username"} && $args->[0]{"username"} eq $user->username());
-
-	# retrieve user object using the given id/username
-#	my $user = $args->[0]{"id"}
-#		? $model->resultset('User')->find($args->[0]{"id"})
-#		: $model->resultset('User')->find($args->[0]{"username"}, {key=>'user_username'});
-#
-#	return unless ref $user;
 
 	# sanitize given data to ensure caller isn't trying to update
 	# any locked fields
