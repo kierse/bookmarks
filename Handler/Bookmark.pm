@@ -21,6 +21,8 @@ sub import_tree
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
+	$logger->info("importing bookmark hierarchy");
+
 	my $args = $request->args();
 
 	# first things first, make sure user has write permission to modify the 
@@ -121,16 +123,17 @@ sub add
 		# into lft and rgt values for storage in database.
 		if (exists $bookmark->{_parent})
 		{
+			$logger->info("calculating tree position values for new bookmark");
 			my $parent = $model->resultset('Bookmark')->find($bookmark->{_parent});
 
-			$SiblingsCache{$parent} = [$parent->get_children()]
-				unless exists $SiblingsCache{$parent};
+			$SiblingsCache{$parent->id()} = [$parent->get_descendents(1)]
+				unless exists $SiblingsCache{$parent->id()};
 
 			($bookmark->{lft}, $bookmark->{rgt}) = _calculate_nested_tree_values
 			(
 				$bookmark, 
 				$parent, 
-				@{$SiblingsCache{$parent}}
+				@{$SiblingsCache{$parent->id()}}
 			);
 
 			# remove _parent and _position data as they are 
@@ -145,19 +148,8 @@ sub add
 		$file->update({revision => $file->revision() + 1});
 		$bookmark->{revision} = $file->revision();
 
-		my $left = $bookmark->{lft};
-		my $right = $bookmark->{rgt};
-
 		# alter tree to make room for current bookmark by:
-		# 1. updating all nodes where rgt > $left - 1 to be rgt=rgt+2
-		# 2. updating all nodes where lft > $left - 1 to be lft=lft+2
-		my $dbh = $model->storage->dbh();
-
-		my $sth = $dbh->prepare("UPDATE bookmark SET rgt=rgt+2 WHERE file=? AND rgt > ?");
-		$sth->execute($bookmark->{file}, $left-1);
-
-		$sth = $dbh->prepare("UPDATE bookmark SET lft=lft+2 WHERE file=? AND lft > ?");
-		$sth->execute($bookmark->{file}, $left-1);
+		_update_bookmark_tree($bookmark->{file}, $bookmark->{lft}, 1);
 
 		$model->resultset('Bookmark')->create($bookmark);
 	}
@@ -178,11 +170,16 @@ sub update
 	my $logger = Logger->get_logger();
 
 	my %SiblingsCache;
-	foreach my $bookmark (@{$request->args()})
+	foreach my $updates (@{$request->args()})
 	{
+		my $id = $updates->{id};
+		$updates = $updates->{_update};
+
+		my $bookmark = $model->resultset('Bookmark')->find($id, {prefetch => 'file'});
+
 		# before we proceed, make sure caller has permission
-		# to make changes to current file
-		my $file = Model::File->get_by_key($bookmark->{file});
+		# to make changes to CURRENT bookmark file
+		my $file = $bookmark->file();
 		$file->assert_access($user, 1);
 
 		# things you can do to a bookmark:
@@ -190,22 +187,78 @@ sub update
 		#  2. alter tree position
 		#  3. change file (must include new tree position)
 
+		# if caller wants to change bookmark file, make sure they have permission to so
+		if (exists $updates->{file})
+		{
+			$file = Model::File->get_by_key($updates->{file});
+			$file->assert_access($user, 1);
+		}
+
+		if (exists $updates->{_parent})
+		{
+			my $parent = $model->resultset('Bookmark')->find($updates->{_parent});
+
+			$SiblingsCache{$parent} = [$parent->get_descendents(1)]
+				unless exists $SiblingsCache{$parent};
+
+			($updates->{lft}, $updates->{rgt}) = _calculate_nested_tree_values
+			(
+				$updates, 
+				$parent, 
+				@{$SiblingsCache{$parent}}
+			);
+
+			# clean up list of changes and remove invalid entries
+			delete $updates->{_parent};
+			delete $updates->{_position};
+
+			$updates->{level} = $parent->level() + 1;
+		}
+
+		# update revision number
+		$file->update({revision => $file->revision() + 1});
+		$updates->{revision} = $file->revision();
+
+		# if caller is moving bookmark, make space in tree for it
+		_update_bookmark_tree($file->id(), $updates->{lft}, 1)
+			if $updates->{lft};
+
+		$bookmark->update($updates);
 	}
+
+	$response->status(1);
 }
 
 sub delete
 {
 	my $class = shift;
 	my ($request, $response) = @_;
-	my $token = $request->token();
+	my $user = $request->token()->user();
 
 	$class->SUPER::delete(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
-	my $args = $request->args();
+	foreach my $rBookmark (@{$request->args()})
+	{
+		my $bookmark = $model->resultset('Bookmark')->find($rBookmark->{id}, {prefetch => 'file'});
 
+		$logger->info("deleting bookmark " . $bookmark->id() . " and subtree");
+
+		# before we proceed, make sure caller has permission
+		# to make changes to current file
+		$bookmark->file()->assert_access($user, 1);
+
+		# delete bookmark and all children
+		$bookmark->get_descendents()->delete();
+		$bookmark->delete();
+
+		throw Exception::Server::Database("Deletion of bookmark '" . $bookmark->id() . "' and all descendents failed")
+			if $bookmark->in_storage();
+	}
+
+	$response->status(1);
 }
 
 # private methods - - - - - - - - - - - - - - - - - - - - - -
@@ -216,6 +269,8 @@ sub _calculate_nested_tree_values
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
+
+	$logger->info("calculate nested tree position values");
 
 	# if there aren't any siblings, it doesn't matter what
 	# the set position is.  Calculate bookmark lft and rgt values
@@ -250,7 +305,40 @@ sub _calculate_nested_tree_values
 		$right = $Siblings[$position]->lft() + 1;
 	}
 
+	$logger->debug("left => $left, right => $right");
 	return ($left, $right);
+}
+
+# 1. updating all nodes where rgt > ($left - 1) to be rgt+2
+# 2. updating all nodes where lft > ($left - 1) to be lft+2
+sub _update_bookmark_tree
+{
+	my ($file, $count, $add, $del) = @_;
+	my $model = Controller->get_model();
+
+	my $dbh = $model->storage->dbh();
+
+	my ($lft_sql, $rgt_sql);
+	if (defined $add)
+	{
+		$add *= 2;
+		$lft_sql = "UPDATE bookmark SET lft=lft+$add WHERE file=? AND lft >= ?";
+		$rgt_sql = "UPDATE bookmark SET rgt=rgt+$add WHERE file=? AND rgt >= ?";
+	}
+	else
+	{
+		$del *= 2;
+		$lft_sql = "UPDATE bookmark SET lft=lft-$del WHERE file=? AND lft >= ?";
+		$rgt_sql = "UPDATE bookmark SET rgt=rgt-$del WHERE file=? AND rgt >= ?";
+	}
+
+	my $sth = $dbh->prepare($rgt_sql);
+	$sth->execute($file, $count);
+
+	$sth = $dbh->prepare($lft_sql);
+	$sth->execute($file, $count);
+
+	return;
 }
 
 1;

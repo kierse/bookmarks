@@ -10,3 +10,8 @@ all child classes.
   - change the anonymous sub that wraps the default DBIx::Class exception in Schema.pm
 - create a standard exception message lookup process. Eg. Invalid write permission on Model::File
 - create sql debug handler that writes sql statements to log using log4perl
+- have to return ID's for all objects created in database otherwise clients won't know
+  how to refer to them later.
+- create signal handler for __DIE__ that gets set by main controller.
+  - should make backup existing signal handler and restore before controller exits
+- look into DBIx::Class caching abilities

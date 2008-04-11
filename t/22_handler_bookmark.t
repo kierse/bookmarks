@@ -202,4 +202,80 @@ SKIP:
 };
 
 # UPDATE existing bookmarks
+$request = 
+{
+	token => { username => 'userA', password => 'pass' },
+	handler => 'Bookmark',
+	method => 'update',
+	args => 
+	[
+		{ id => 0, _update => { name => "New title" } },
+		{ 
+			id => 0, 
+			_update => 
+			{
+				lft => 0,
+				rgt => 0,
+				level => 0,
+			},
+		},
+		{ 
+			id => 0, 
+			_update => 
+			{
+				file => 0,
+				lft => 0,
+				rgt => 0,
+				level => 0,
+			},
+		},
+		{ 
+			id => 0, 
+			_update => 
+			{
+				_parent => 0,
+				_position => 0,
+			},
+		},
+	],
+};
+
+$response = Controller->request($request);
+
+#exit;
+#SKIP:
+#{
+#	skip "update failed, further checks unnecessary"
+#		unless ok($response->status eq 1, "UPDATE existing bookmarks");
+#
+#	my @List;
+#	my %Bookmarks = map { $_->id() => $_ } $model->resultset('Bookmark')->search({id => { '-in' => \@List }});
+#	is($Bookmarks{$List[0]}->name(), "New title", "verify file name was updated");
+#	is($Bookmarks{$List[1]}->lft(), , "verify file tree position was updated");
+#	is($Bookmarks{$List[2]}->file(), , "verify bookmark file was updated");
+#	is($Bookmarks{$List[3]}->level(), , "verify bookmark tree position calculated and updated");
+#}
+#diag $response->error()->stringify() if $response->status eq -1;
+
+# DELETE existing bookmark
+$request =
+{
+	token => { id => 0, username => 'userA', password => 'pass' },
+	handler => 'Bookmark',
+	method => 'delete',
+	args => [ { id => 35 } ],
+};
+
+$response = Controller->request($request);
+
+SKIP:
+{
+	skip "delete failed, further checks unnecessary"
+		unless ok($response->status eq 1, "DELETE existing bookmark sub tree");
+
+	my @List = (35, 36, 37, 38, 44);
+	my @Bookmarks = $model->resultset('Bookmark')->search({id => { '-in' => \@List }});
+	is(scalar @Bookmarks, 0, "verify bookmark sub tree was deleted");
+}
+diag $response->error()->stringify() if $response->status eq -1;
 

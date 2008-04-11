@@ -53,7 +53,7 @@ sub update
 		
 		# retrieve the file being updated...
 		my @Args;
-		if ($rFile->{id})
+		if (exists $rFile->{id})
 		{
 			@Args = ($rFile->{id});
 		}
@@ -101,18 +101,20 @@ sub delete
 			unless defined $file->{"id"} || defined $file->{"name"};
 
 		my @Args;
-		if ($file->{id})
+		if (exists $file->{id})
 		{
-
+			@Args = ($file->{id})
 		}
 		else
 		{
 			@Args = 
-			{
-				name => $file->{name},
-				owner => $user->id(),
-			},
-			{ key => 'file_name_owner' },
+			(
+				{
+					name => $file->{name},
+					owner => $user->id(),
+				},
+				{ key => 'file_name_owner' },
+			);
 		}
 
 		# delete file

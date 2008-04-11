@@ -90,7 +90,7 @@ __PACKAGE__->set_primary_key("id");
 #__PACKAGE__->add_unique_constraint(["lft", "rgt", "file"]);
 
 # define any foreign key constraints
-__PACKAGE__->belongs_to("file" => "Model::File", undef, {cascade_delete => 1});
+__PACKAGE__->belongs_to("file" => "Model::File");
 
 # define optional one-to-one relationships
 __PACKAGE__->might_have("bookmark_folder", "Model::Folder", "id");
@@ -98,19 +98,27 @@ __PACKAGE__->might_have("bookmark_link", "Model::Link", "id");
 
 # public methods- - - - - - - - - - - - - - - - - - - - - - -
 
-sub get_children
+sub get_descendents
 {
-	my ($this) = @_;
-	my $model = Controller->get_model();
+	my ($this, $children) = @_;
 
-	return $model->resultset('Bookmark')->search
-	(
-		{
-			file => $this->file(),
-			level => $this->level() + 1,
-			lft => {-between => [$this->lft(), $this->rgt()]},
-		},
-	);
+	my $model = Controller->get_model();
+	my $logger = Logger->get_logger();
+
+	$children
+		? $logger->debug("getting children for bookmark " . $this->id())
+		: $logger->debug("getting descendents for bookmark " . $this->id());
+
+	my $args = 
+	{
+		file => $this->get_column('file'),
+		lft => {-between => [$this->lft(), $this->rgt()]},
+	};
+	
+	$args->{level} = $this->level() + 1
+		if $children;
+
+	return $model->resultset('Bookmark')->search($args);
 }
 
 1;

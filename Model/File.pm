@@ -86,10 +86,14 @@ __PACKAGE__->many_to_many("users_who_have_access" => "file_users", "user");
 sub assert_access 
 {
 	my ($this, $user, $modify) = @_;
+
 	my $model = Controller->get_model();
+	my $logger = Logger->get_logger();
+
+	$logger->debug("running assert_access on file '" . $this->id() . "'");
 
 	# if given user is the owner, we are done
-	return 1 if $this->owner()->get_column("id") eq $user->id();
+	return 1 if $this->get_column("owner") eq $user->id();
 
 	my $access = $model->resultset('FileUser')->find
 	(
