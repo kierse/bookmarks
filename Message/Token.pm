@@ -42,9 +42,18 @@ sub new
 	my $model = Controller->get_model();
 
 	# use username and password and retrieve user object from database
-	my $user = $token->{id}
-		? $model->resultset('User')->find($token->{id})
-		: $model->resultset('User')->find($token->{username}, {key=>"user_username"});
+	my @Args;
+	if ($token->{id})
+	{
+		push @Args, $token->{id};
+	}
+	else
+	{
+		push @Args, $token->{username};
+		push @Args, {key=>"user_username"};
+	}
+
+	my $user = Model::User->get_by_key(@Args);
 
 	# verify that given password is valid
 	throw Exception::Client::InvalidCredentials("Username and/or password is incorrect")

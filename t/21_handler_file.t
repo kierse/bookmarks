@@ -20,6 +20,7 @@ BEGIN
 }
 
 # CREATE new file
+my @TID = (0, 1);
 my $request =
 {
 	token => { username => 'userA', password => 'pass' },
@@ -28,10 +29,12 @@ my $request =
 	args =>
 	[
 		{
+			_tID => $TID[0],
 			name => "fileG", 
 			description => "Test fileG",
 		},
 		{
+			_tID => $TID[1],
 			name => "fileH", 
 			description => "Test fileH",
 		},
@@ -51,7 +54,7 @@ SKIP:
 	(
 		{
 			name => $rawFile->{name}, 
-			owner => $rawFile->{owner}
+			owner => $rawFile->{owner},
 		}, 
 		{ key => 'file_name_owner' },
 	);

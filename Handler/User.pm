@@ -25,10 +25,16 @@ sub add
 
 	my $args = $request->args();
 
+	# grab temporary id
+	my $tID = __PACKAGE__->_get_temporary_id($request, $args->[0]);
+
 	# create new user using request data
 	my $user = $model->resultset('User')->create($args->[0]);
 
-	return unless ref $user;
+	$logger->debug("temporary ID: $tID, actual ID: " . $user->id());
+
+	# build response
+	$response->args()->[0] = {$tID => $user->id()};
 
 	# made it this far, set status to 1 on response
 	$response->status(1);

@@ -20,6 +20,7 @@ BEGIN
 }
 
 # CREATE new User
+my $tID = 5;
 my $request = 
 {
 	token => { username => 'userA', password => 'pass' },
@@ -28,6 +29,7 @@ my $request =
 	args => 
 	[
 		{
+			_tID => $tID,
 			username => "testUser",
 			password => "testPass",
 			name => "Test User",
@@ -45,7 +47,8 @@ SKIP:
 		unless ok($response->status() eq 1, "CREATE new user");
 
 	my $rawUser = $request->{args}[0];
-	my $user = $model->resultset('User')->find($rawUser->{username}, {key=>'user_username'});
+	my $id = $response->args()->[0]{$tID};
+	my $user = $model->resultset('User')->find($id);
 
 	ok($rawUser->{name} eq $user->name(), "verify new user name");
 	ok($rawUser->{email} eq $user->email(), "verify new user email");

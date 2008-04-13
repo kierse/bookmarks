@@ -23,73 +23,51 @@ sub import_tree
 
 	$logger->info("importing bookmark hierarchy");
 
-	my $args = $request->args();
+	my $bookmarks = $request->args();
 
 	# first things first, make sure user has write permission to modify the 
 	# file they are trying to import into.  Retrieve the file and check users 
 	# access level
-	Model::File->get_by_key($args->[0]{file})->assert_access($user, 1);
+	my $file = Model::File->get_by_key($bookmarks->[0]{file});
+	$file->assert_access($user, 1);
+
+	$file->update({revision => $file->revision() + 1});
 
 	# import method #1
 	# caller has passed a series of arguments, each of which contains
 	# hierarchy and positional information.  No need to do any calculations
 	# on the given lft and rgt values.
-	my $bookmarks;
-	if (exists $args->[0]{lft})
-	{
-		$bookmarks = $args;
-	}
 
 	# import method #2
 	# caller has passed a nested list of arguments representing a physical 
 	# hierarchy.  Traverse tree and gather lft and rgt values from given
 	# structure and order.
-	else
+	unless (exists $bookmarks->[0]{lft})
 	{
 		my $count = 0;
 		my $level = 0;
-		my $processTree;
-		$processTree = sub
-		{
-			my $bookmark = shift;
 
-			# set current tree level
-			$bookmark->{level} = $level;
-
-			# set current bookmarks lft value
-			$bookmark->{lft} = $count++;
-
-			my @Children;
-			if ($bookmark->{_children})
-			{
-				# the current bookmark has children, increment
-				# the level counter once BEFORE processing them...
-				$level++;
-
-				push @Children, &$processTree($_)
-						foreach @{$bookmark->{_children}};
-
-				# ...and decrement the level counter once AFTER
-				# processing them
-				$level--;
-			}
-
-			# set current bookmarks rgt value
-			$bookmark->{rgt} = $count++;
-
-			# delete _children key as it doesn't
-			# exist in Model::Bookmark objects
-			delete $bookmark->{_children};
-
-			return ($bookmark, @Children);
-		};
-
-		my @List = &$processTree($args->[0]);
-		$bookmarks = \@List;
+		@$bookmarks = _build_tree_node($bookmarks->[0], \$count, \$level);
 	}
 
-	# populate database with given bookmark hierarchy data
-	$model->resultset('Bookmark')->populate($bookmarks);
+	$logger->debug("import called with " . scalar @$bookmarks . " bookmarks");
+
+	my $resp;
+	foreach my $rBookmark (@$bookmarks)
+	{
+		# grab temporary id
+		my $tID = __PACKAGE__->_get_temporary_id($request, $rBookmark);
+
+		# make sure some necessary values are set
+		$rBookmark->{file} = $file->id();
+		$rBookmark->{revision} = $file->revision();
+
+		my $bookmark = $model->resultset('Bookmark')->create($rBookmark);
+
+		$resp->{$tID} = $bookmark->id();
+	}
+
+	push @{$response->args()}, $resp;
 
 	$response->status(1);
 }
@@ -285,7 +263,6 @@ sub _calculate_nested_tree_values
 	# check if bookmark position is 0
 	elsif ($bookmark->{_position} == 0)
 	{
-		die $Siblings[0];
 		$left = $Siblings[0]->lft();
 		$right = $Siblings[0]->lft() + 1;
 	}
@@ -309,8 +286,13 @@ sub _calculate_nested_tree_values
 	return ($left, $right);
 }
 
-# 1. updating all nodes where rgt > ($left - 1) to be rgt+2
-# 2. updating all nodes where lft > ($left - 1) to be lft+2
+# If adding bookmarks:
+#  1. update all nodes where rgt > ($count - 1) and set rgt to be rgt + (2 * # of bookmarks being added)
+#  2. update all nodes where lft > ($count - 1) and set lft to be lft + (2 * # of bookmarks being added)
+#
+# else, if deleting bookmarks:
+#  1. update all nodes where rgt > ($count - 1) and set rgt to be rgt - (2 * # of bookmarks being added)
+#  2. update all nodes where lft > ($count - 1) and set lft to be lft - (2 * # of bookmarks being added)
 sub _update_bookmark_tree
 {
 	my ($file, $count, $add, $del) = @_;
@@ -339,6 +321,35 @@ sub _update_bookmark_tree
 	$sth->execute($file, $count);
 
 	return;
+}
+
+sub _build_tree_node
+{
+	my ($node, $count, $level) = @_;
+
+	$node->{lft} = $$count++;
+	$node->{level} = $$level;
+
+	my @Children;
+	if ($node->{_children})
+	{
+		# the current bookmark has children, increment
+		# the level counter once BEFORE processing them...
+		$$level++;
+
+		push @Children, _build_tree_node($_, $count, $level)
+			foreach @{$node->{_children}};
+
+		# ...and decrement the level counter once AFTER 
+		# processing all children
+		$$level--;
+
+		delete $node->{_children};
+	}
+
+	$node->{rgt} = $$count++;
+
+	return ($node, @Children);
 }
 
 1;

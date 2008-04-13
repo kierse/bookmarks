@@ -25,11 +25,20 @@ sub add
 	my $logger = Logger->get_logger();
 
 	# loop through given arguments and create new files
-	foreach my $file (@{$request->args()})
+	my $resp;
+	foreach my $rFile (@{$request->args()})
 	{
-		$file->{owner} = $user->id();
-		$model->resultset('File')->create($file);
+		# grab temporary id
+		my $tID = __PACKAGE__->_get_temporary_id($request, $rFile);
+
+		$rFile->{owner} = $user->id();
+		my $file = $model->resultset('File')->create($rFile);
+
+		# add tID => ID pair to response
+		$resp->{$tID} = $file->id();
 	}
+
+	push @{$response->args()}, $resp;
 
 	# made it this far, set status to 1 on response
 	$response->status(1);

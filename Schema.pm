@@ -10,13 +10,16 @@ __PACKAGE__->exception_action
 (
 	sub 
 	{ 
-###	my $e = shift;
+		my $e = shift;
 
-###	# rethrow error if its an exception object
-###	throw $e unless ref $e && $e->isa("Exception");
+		# if $e is an exception object, re-throw
+		$e->throw if ref $e && $e->can('throw');
+
+		# otherwise, generate a new exception and throw
+		throw Exception::Server::Database($e);
 
 		# otherwise, generate new exception and throw
-		throw Exception::Server::Database(@_); #print ""; 
+#		throw Exception::Server::Database(@_); #print ""; 
 	}
 );
 

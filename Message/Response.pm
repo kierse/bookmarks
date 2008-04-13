@@ -18,7 +18,7 @@ my $fields =
 
 	# response data generated from a successful request
 	# only present if error is unset
-	response => [],
+	args => [],
 
 	# boolean value indicating overall status of request
 	status => 0,

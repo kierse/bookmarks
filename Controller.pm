@@ -29,8 +29,8 @@ sub request : Obj()
 	my ($class, $request) = @_;
 	my $response;
 
-   try
-   {
+#  try
+#  {
    	# first things first, initialize the controller
    	_init();
 
@@ -38,7 +38,7 @@ sub request : Obj()
    	$response = Message::Response->new();
 
    	# deserialize the client message and construct a request object
-		my $request = Message::Request->new($request);
+		$request = Message::Request->new($request);
 
    	# invoke the appropriate controller and hand off processing 
    	# the request to it
@@ -54,36 +54,36 @@ sub request : Obj()
 			unless $handler->can($method);
 
    	$SCHEMA->txn_do(sub { $handler->$method($request, $response) });
-   }
-   catch Exception with
-   {
-   	my $e = shift;
+#  }
+#  catch Exception with
+#  {
+#  	my $e = shift;
 
-   	# if we've got a valid response object
-   	# add the error to the response object, set
-   	# the request status, and continue
-   	if (ref $response)
-   	{
-   		# add error to response
-   		$response->error($e);
+#  	# if we've got a valid response object
+#  	# add the error to the response object, set
+#  	# the request status, and continue
+#  	if (ref $response)
+#  	{
+#  		# add error to response
+#  		$response->error($e);
 
-   		# make sure the response does not contain any valid data
-   		# and the status is set to -1
-   		$response->response([]);
-   		$response->status(-1);
-   	}
+#  		# make sure the response does not contain any valid data
+#  		# and the status is set to -1
+#  		$response->args([]);
+#  		$response->status(-1);
+#  	}
 
-   	# we don't have a response object, something sinister happened
-   	# manually create a minimal response for the client and continue
-   	else
-   	{
-   		$response = 
-   		{
-   			status => -1,
-   			error => $e,
-   		};
-   	}
-   };
+#  	# we don't have a response object, something sinister happened
+#  	# manually create a minimal response for the client and continue
+#  	else
+#  	{
+#  		$response = 
+#  		{
+#  			status => -1,
+#  			error => $e,
+#  		};
+#  	}
+#  };
 
 	return $response;
 }

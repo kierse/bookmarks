@@ -46,6 +46,16 @@ sub delete
 		unless grep { ref $_ eq "HASH" } @$args;
 }
 
+sub _get_temporary_id
+{
+	my ($class, $request, $raw) = @_;
+
+	throw Exception::Client::InvalidRequest("All arguments passed to " . $request->handler() . "->" . $request->method() . " must have a temporary id (_tID)")
+		unless exists $raw->{_tID};
+
+	return delete $raw->{_tID};
+}
+
 # private methods - - - - - - - - - - - - - - - - - - - - - -
 
 1;
