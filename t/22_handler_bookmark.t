@@ -154,6 +154,7 @@ $request =
 		{_tID => $TIDs[0], title => "1n", lft => 3, rgt => 4, level => 3, file => 0},
 		{_tID => $TIDs[1], title => "1o", lft => 14, rgt => 15, level => 2, file => 0},
 		{_tID => $TIDs[2], title => "1p", lft => 25, rgt => 26, level => 5, file => 0},
+		{_tID => $TIDs[3], title => "1q", lft => 15, rgt => 16, level => 5, file => 0},
 	],
 };
 $size += scalar @{$request->{args}};
@@ -169,7 +170,7 @@ SKIP:
 	my @Files = $model->resultset('Bookmark')->search({file => $request->{args}[0]{file}});
 	is(scalar @Files, $size, "verify correct number of bookmarks were inserted");
 	is($Files[0]->rgt(), $rgt, "verify that hierarchy root was correctly updated");
-	is($Files[$#Files]->title(), "1p", "checking end of hierarchy");
+	is($Files[$#Files]->title(), "1q", "checking end of hierarchy");
 };
 diag $response->error()->stringify() if $response->status eq -1;
 
@@ -190,6 +191,7 @@ SKIP:
 			{_tID => $TIDs[0], title => "2n", file => 1, _parent => $Parents[0]->id(), _position => 0},
 			{_tID => $TIDs[1], title => "2o", file => 1, _parent => $Parents[1]->id(), _position => 0},
 			{_tID => $TIDs[2], title => "2p", file => 1, _parent => $Parents[2]->id(), _position => 0},
+			{_tID => $TIDs[3], title => "2q", file => 1, _parent_tID => $TIDs[1], _position => 0},
 		],
 	};
 
@@ -203,10 +205,12 @@ SKIP:
 		my @Files = $model->resultset('Bookmark')->search({file => $request->{args}[0]{file}});
 		is(scalar @Files, $size, "verify correct number of bookmarks were inserted");
 		is($Files[0]->rgt(), $rgt, "verify that hierarchy root was correctly updated");
-		is($Files[$#Files]->title(), "2p", "checking end of hierarchy");
+		is($Files[$#Files]->title(), "2q", "checking end of hierarchy");
 	};
 	diag $response->error()->stringify() if $response->status eq -1;
 };
+
+exit;
 
 # UPDATE existing bookmarks
 $request = 
@@ -216,34 +220,15 @@ $request =
 	method => 'update',
 	args => 
 	[
-		{ id => 0, _update => { name => "New title" } },
-		{ 
-			id => 0, 
-			_update => 
-			{
-				lft => 0,
-				rgt => 0,
-				level => 0,
-			},
-		},
-		{ 
-			id => 0, 
-			_update => 
-			{
-				file => 0,
-				lft => 0,
-				rgt => 0,
-				level => 0,
-			},
-		},
-		{ 
-			id => 0, 
-			_update => 
-			{
-				_parent => 0,
-				_position => 0,
-			},
-		},
+		{ id => 25, _update => { name => "New title", lft => 22, rgt => 23, level => 4 } },
+		{ id => 41, _update => { lft => 29, rgt => 30, level => 3 } },
+		{ id => 22, _update => { lft => 8, rgt => 13, level => 4 } },
+		{ id => 23, _update => { lft => 9, rgt => 10, level => 5 } },
+		{ id => 24, _update => { lft => 11, rgt => 12, level => 5 } },
+
+		{ id => 25, _update => { _parent => 42, _position => 0, } },
+		{ id => 22, _update => { _parent => 20, _position => 0, } },
+		{ id => 41, _update => { _parent => 25, _position => 0, } },
 	],
 };
 

@@ -42,7 +42,7 @@ sub import_tree
 	# caller has passed a nested list of arguments representing a physical 
 	# hierarchy.  Traverse tree and gather lft and rgt values from given
 	# structure and order.
-	unless (exists $bookmarks->[0]{lft})
+	if (exists $bookmarks->[0]{_children})
 	{
 		my $count = 0;
 		my $level = 0;
@@ -83,13 +83,20 @@ sub add
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
 
+	my @Bookmarks = @{$request->args()};
+	$logger->debug("add called with " . scalar @Bookmarks . " bookmarks");
+
+	my $resp;
 	my %SiblingsCache;
-	foreach my $bookmark (@{$request->args()})
+	foreach my $rBookmark (@Bookmarks)
 	{
 		# before we proceed, make sure caller has permission
 		# to make changes to current file
-		my $file = Model::File->get_by_key($bookmark->{file});
+		my $file = Model::File->get_by_key($rBookmark->{file});
 		$file->assert_access($user, 1);
+
+		# grab temporary id
+		my $tID = __PACKAGE__->_get_temporary_id($request, $rBookmark);
 
 		# add bookmark method #1
 		# caller has passed a series of arguments, each of which contains
@@ -99,38 +106,47 @@ sub add
 		# caller has passed a list of arguments which contain parent
 		# and folder position information.  Need to translate this data
 		# into lft and rgt values for storage in database.
-		if (exists $bookmark->{_parent})
+		if (exists $rBookmark->{_position})
 		{
 			$logger->info("calculating tree position values for new bookmark");
-			my $parent = $model->resultset('Bookmark')->find($bookmark->{_parent});
+			my $parent = $rBookmark->{_parent}
+				? $rBookmark->{_parent}
+				: $rBookmark->{_parent_tID};
+
+			$parent = Model::Bookmark->get_by_id($parent);
 
 			$SiblingsCache{$parent->id()} = [$parent->get_descendents(1)]
 				unless exists $SiblingsCache{$parent->id()};
 
-			($bookmark->{lft}, $bookmark->{rgt}) = _calculate_nested_tree_values
+			($rBookmark->{lft}, $rBookmark->{rgt}) = _calculate_nested_tree_values
 			(
-				$bookmark, 
+				$rBookmark, 
 				$parent, 
 				@{$SiblingsCache{$parent->id()}}
 			);
 
 			# remove _parent and _position data as they are 
 			# no longer needed...
-			delete $bookmark->{_parent};
-			delete $bookmark->{_position};
+			delete $rBookmark->{_position};
+			delete $rBookmark->{_parent};
+			delete $rBookmark->{_parent_tID};
 
-			$bookmark->{level} = $parent->level() + 1;
+			$rBookmark->{level} = $parent->level() + 1;
 		}
 
 		# update revision number
 		$file->update({revision => $file->revision() + 1});
-		$bookmark->{revision} = $file->revision();
+		$rBookmark->{revision} = $file->revision();
 
 		# alter tree to make room for current bookmark by:
-		_update_bookmark_tree($bookmark->{file}, $bookmark->{lft}, 1);
+		_update_bookmark_tree($rBookmark->{file}, $rBookmark->{lft}, 1);
 
-		$model->resultset('Bookmark')->create($bookmark);
+		my $bookmark = $model->resultset('Bookmark')->create($rBookmark);
+
+		$resp->{$tID} = $bookmark->id();
 	}
+
+	push @{$response->args()}, $resp;
 
 	# made it this far, set status to 1 on response
 	$response->status(1);

@@ -15,3 +15,4 @@ all child classes.
 - create signal handler for __DIE__ that gets set by main controller.
   - should make backup existing signal handler and restore before controller exits
 - look into DBIx::Class caching abilities
+- expand bookmark test to include bookmark position other than 0

@@ -17,6 +17,12 @@ sub new
 	return bless $fields, $class;
 }
 
+sub get_by_id
+{
+	my $type = shift;
+	return $type->get_by_key(@_);
+}
+
 sub get_by_key
 {
 	my ($type, @Args) = @_;
