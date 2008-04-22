@@ -221,14 +221,13 @@ $request =
 	args => 
 	[
 		{ id => 25, _update => { name => "New title", lft => 22, rgt => 23, level => 4 } },
-		{ id => 41, _update => { lft => 29, rgt => 30, level => 3 } },
 		{ id => 22, _update => { lft => 8, rgt => 13, level => 4 } },
-		{ id => 23, _update => { lft => 9, rgt => 10, level => 5 } },
-		{ id => 24, _update => { lft => 11, rgt => 12, level => 5 } },
+		{ id => 41, _update => { lft => 27, rgt => 28, level => 5 } },
+		{ id => 16, _update => { file => 1, lft => 4, rgt => 7 } },
 
-		{ id => 25, _update => { _parent => 42, _position => 0, } },
-		{ id => 22, _update => { _parent => 20, _position => 0, } },
-		{ id => 41, _update => { _parent => 25, _position => 0, } },
+		{ id => 38, _update => { _parent => 46, _position => 0, } },
+		{ id => 35, _update => { _parent => 30, _position => 0, } },
+		{ id => 45, _update => { _parent => 38, _position => 0, } },
 	],
 };
 
