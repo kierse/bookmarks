@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://bookmark/skin/settings.css" type="text/css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://bookmark/locale/settings.dtd">
+
+<prefwindow title="test" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<prefpane id="bookmark1" label="prefpanel1">
+		<preferences>
+			<preference id="pref_symbol" name="stockwatcher2.symbol" type="string"/>
+		</preferences>
+
+		<hbox align="center">
+			<label control="symbol" value="Stock to watch: "/>
+			<textbox preference="pref_symbol" id="symbol" maxlength="4"/>
+		</hbox>
+	</prefpane>
+	<prefpane id="saveoptions" label="Backups">
+		<preferences>
+			<preference id="pref-backup" name="myapp.mybackups" type="bool"/>
+			<preference id="pref-backupduration" name="myapp.mybackups.duration" type="int"/>
+		</preferences>
+		<checkbox label="Automatically Save Backups" preference="pref-backup"/>
+		<textbox label="Duration:" preference="pref-backupduration"/>
+	</prefpane>
+</prefwindow>
+
+<!--
+<dialog title="&settings.title;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script src="settings.js" />
+
+	<groupbox>
+		<caption label="&settings.title;" />
+		<label value="test1" />
+		<label value="test2" />
+	</groupbox>
+</dialog>
+-->

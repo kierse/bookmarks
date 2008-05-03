@@ -18,6 +18,10 @@
 					label="&menu.item1;" 
 					oncommand="StatusBar.onClickMenuItem(event, 'item1');" 
 				/>
+				<menuitem id="bookmark-statusbar-menu-settings" 
+					label="&menu.settings;" 
+					oncommand="StatusBar.onClickMenuItem(event, 'settings');" 
+				/>
 			</popup>
 		</statusbarpanel>
 	</statusbar>

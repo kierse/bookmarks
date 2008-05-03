@@ -13,6 +13,10 @@ var ToolsMenu =
 				alert("Bookmark Synchronizer toolsmenu: " + clicked);
 				break;
 
+			case 'settings':
+				window.openDialog("chrome://bookmark/content/settings.xul", "", "chrome, toolbar");
+				break;
+
 			default:
 				alert("unknown menu item selection");
 		};

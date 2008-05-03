@@ -29,6 +29,10 @@ var StatusBar =
 			case 'item1':
 				alert("Bookmark Synchronizer statusbar menu: " + clicked);
 				break;
+
+			case 'settings':
+				window.openDialog("chrome://bookmark/content/settings.xul", "", "chrome");
+				break;
 				
 			default:
 				alert("unknown menu item selection");

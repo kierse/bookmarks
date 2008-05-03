@@ -14,6 +14,10 @@
 					label="&menu.item1;" 
 					oncommand="ToolsMenu.onClickMenuItem(event, 'item1');"
 				/>
+				<menuitem id="bookmark-toolsmenu-popup-settings" 
+					label="&menu.settings;" 
+					oncommand="ToolsMenu.onClickMenuItem(event, 'settings');"
+				/>
 			</menupopup>
 		</menu>
 	</menupopup>
