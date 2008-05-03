@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
-<!--<?xml-stylesheet href="chrome://bookmark/chrome/skin/overlay.css" type="text/css"?>-->
+<?xml-stylesheet href="chrome://bookmark/skin/statusbar.css" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://bookmark/chrome/locale/bookmark.dtd">
-<!DOCTYPE overlay SYSTEM "chrome://bookmark/chrome/locale/statusbar.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://bookmark/locale/statusbar.dtd">
 
 <overlay id="bookmark-statusbar-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script src="statusbar.js"/>
+  <script src="statusbar.js" />
 
-  <statusbar id="bookmark-statusbar">
-	  <statusbarpanel id="bookmark-panel" label="&extension.name;" />
+  <statusbar id="status-bar">
+	  <statusbarpanel id="bookmark-statusbar" label="&extension.name;" />
   </statusbar>
 </overlay>
+

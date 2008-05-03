@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://bookmark/skin/toolsmenu.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://bookmark/locale/toolsmenu.dtd">
+
+<overlay id="bookmark-toolsmenu-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script src="toolsmenu.js" />
+
+	<menupopup id="menu_ToolsPopup">
+		<menuitem id="bookmark-toolsmenu2" label="&extension.name;" oncommand="ToolsMenu.onMenuItemCommand(event);" />
+	</menupopup>
+</overlay>

@@ -23,9 +23,9 @@
     <em:description>Bookmark Synchronizer</em:description>
     <em:creator>Kieran Elliott</em:creator>
     <em:homepageURL>http://bookmark.pissiphany.com</em:homepageURL>
-	 <em:optionsURL>chrome://bookmark/chrome/content/options.xul</em:optionsURL>
-	 <em:aboutURL>chrome://bookmark/chrome/content/about.xul</em:aboutURL>
-	 <em:iconURL>chrome://bookmark/chrome/skin/icon.xul</em:iconURL>
+	 <em:optionsURL>chrome://bookmark/content/options.xul</em:optionsURL>
+	 <em:aboutURL>chrome://bookmark/content/about.xul</em:aboutURL>
+	 <em:iconURL>chrome://bookmark/skin/icon.png</em:iconURL>
 
   </Description>
 
