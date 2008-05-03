@@ -1,0 +1,12 @@
+# declare default content directory
+content	bookmark	chrome/content/
+
+# overlays
+overlay	chrome://browser/content/browser.xul	chrome://bookmark/chrome/content/statusbar.xul
+#overlay	chrome://browser/content/browser.xul	chrome://bookmark/chrome/content/menu.xul
+
+# declare all locales
+locale	bookmark	en-US	chrome/locale/en-US/
+
+# declare all skins
+skin	bookmark	default	chrome/skin/
