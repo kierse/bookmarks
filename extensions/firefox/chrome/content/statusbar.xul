@@ -4,16 +4,22 @@
 <!DOCTYPE overlay SYSTEM "chrome://bookmark/locale/statusbar.dtd">
 
 <overlay id="bookmark-statusbar-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script src="statusbar.js" />
+	<script src="statusbar.js" />
 
-  <statusbar id="status-bar">
-	  <statusbarpanel id="bookmark-statusbar" src="chrome://bookmark/skin/statusbar.png" class="statusbarpanel-menu-iconic" oncommand="StatusBar.onClick(event);" context="Status.onContextClick(event);">
-		  <!--<statusbarpanel-menu-iconic id="bookmark-statusbar">-->
-		  <menupopup id="bookmark-statusbar-menupopup">
-			  <menuitem id="bookmark-statusbar-menupopup-option1" label="&extension.name;" oncommand="StatusBar.onClick(event);" />
-		  </menupopup>
-		  <!--</statusbarpanel-menu-iconic>-->
-     </statusbarpanel>
-  </statusbar>
+	<statusbar id="status-bar">
+		<!--<statusbarpanel id="bookmark-statusbar" class="statusbarpanel-iconic" src="chrome://bookmark/skin/statusbar.png" context="bookmark-statusbar-popup" />-->
+		<statusbarpanel id="bookmark-statusbar" context="bookmark-statusbar-menu">
+			<image id="bookmark-statusbar-icon" 
+				src="chrome://bookmark/skin/statusbar1.png" 
+				onclick="StatusBar.onClickImage(event, this);" 
+			/>
+			<popup id="bookmark-statusbar-menu">
+				<menuitem id="bookmark-statusbar-menu-item1" 
+					label="&menu.item1;" 
+					oncommand="StatusBar.onClickMenuItem(event, 'item1');" 
+				/>
+			</popup>
+		</statusbarpanel>
+	</statusbar>
 </overlay>
 

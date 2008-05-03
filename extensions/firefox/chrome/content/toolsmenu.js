@@ -5,10 +5,18 @@ var ToolsMenu =
 		this.initialized = true;
 	},
 
-	onClick: function()
+	onClickMenuItem: function(e, clicked)
 	{
-		alert("Bookmark Synchronizer preferences!");
-	}
+		switch(clicked)
+		{
+			case 'item1':
+				alert("Bookmark Synchronizer toolsmenu: " + clicked);
+				break;
+
+			default:
+				alert("unknown menu item selection");
+		};
+	},
 };
 
 window.addEventListener("load", function(e) { ToolsMenu.onLoad(e) }, false);

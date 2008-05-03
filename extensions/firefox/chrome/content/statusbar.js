@@ -5,20 +5,35 @@ var StatusBar =
 		this.initialized = true;
 	},
 
-	onClick: function()
+	onClickImage: function(e, image)
 	{
-		alert("Bookmark Synchronizer statusbar click!");
+		if (e.button == 0)
+		{
+			var re = /^(.+)?\/statusbar(\d)\.png$/gi
+
+			var match = re.exec(image.src);
+			if (match && match.length == 3)
+			{
+				match[2] ^= 1;
+				image.src = match[1] + "/statusbar" + match[2] + ".png";
+
+				alert("Bookmark Synchronizer statusbar image click!");
+			}
+		}
 	},
 
-	onContextClick: function()
+	onClickMenuItem: function(e, clicked)
 	{
-		alert("Bookmark Synchronizer statusbar context click!");
+		switch(clicked)
+		{
+			case 'item1':
+				alert("Bookmark Synchronizer statusbar menu: " + clicked);
+				break;
+				
+			default:
+				alert("unknown menu item selection");
+		};
 	},
-
-	onContextOptionClick: function()
-	{
-		alert("Bookmark Synchronizer statusbar context menu click!");
-	}
 };
 
 window.addEventListener("load", function(e) { StatusBar.onLoad(e) }, false);
