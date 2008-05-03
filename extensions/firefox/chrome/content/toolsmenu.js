@@ -5,9 +5,9 @@ var ToolsMenu =
 		this.initialized = true;
 	},
 
-	onMenuItemCommand: function()
+	onClick: function()
 	{
-		alert("Bookmark Synchronizer");
+		alert("Bookmark Synchronizer preferences!");
 	}
 };
 

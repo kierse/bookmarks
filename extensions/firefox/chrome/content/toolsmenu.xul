@@ -7,6 +7,6 @@
 	<script src="toolsmenu.js" />
 
 	<menupopup id="menu_ToolsPopup">
-		<menuitem id="bookmark-toolsmenu2" label="&extension.name;" oncommand="ToolsMenu.onMenuItemCommand(event);" />
+		<menuitem id="bookmark-toolsmenu" label="&extension.name;" oncommand="ToolsMenu.onClick(event);" />
 	</menupopup>
 </overlay>

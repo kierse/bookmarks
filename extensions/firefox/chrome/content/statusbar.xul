@@ -7,7 +7,13 @@
   <script src="statusbar.js" />
 
   <statusbar id="status-bar">
-	  <statusbarpanel id="bookmark-statusbar" label="&extension.name;" />
+	  <statusbarpanel id="bookmark-statusbar" src="chrome://bookmark/skin/statusbar.png" class="statusbarpanel-menu-iconic" oncommand="StatusBar.onClick(event);" context="Status.onContextClick(event);">
+		  <!--<statusbarpanel-menu-iconic id="bookmark-statusbar">-->
+		  <menupopup id="bookmark-statusbar-menupopup">
+			  <menuitem id="bookmark-statusbar-menupopup-option1" label="&extension.name;" oncommand="StatusBar.onClick(event);" />
+		  </menupopup>
+		  <!--</statusbarpanel-menu-iconic>-->
+     </statusbarpanel>
   </statusbar>
 </overlay>
 
