@@ -21,12 +21,14 @@ __PACKAGE__->add_columns
 	{
 		'accessor' => 'url',
 		'data_type' => 'VARCHAR',
+		'size' => 255,
 		'is_nullable' => 0,
 	},
 	'keyword' =>
 	{
 		'accessor' => 'keyword',
 		'data_type' => 'VARCHAR',
+		'size' => 25,
 	},
 	'bookmark' =>
 	{
@@ -38,7 +40,7 @@ __PACKAGE__->add_columns
 	'created' =>
 	{
 		'accessor' => 'created',
-		'data_type' => 'DATETIME',
+		'data_type' => 'TIMESTAMP',
 		'default_value' => 'CURRENT_TIMESTAMP',
 	},
 	'modified' =>

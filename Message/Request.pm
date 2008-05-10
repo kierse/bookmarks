@@ -55,7 +55,7 @@ sub new
 	my $this = $class->SUPER::new($fields);
 
 	# generate new token object
-#	$this->token(Message::Token->new($request->{token}));
+	$this->token(Message::Token->new($request->{token}));
 
 	# determine request handler
 	throw Exception::Client::MissingRequestData("Unknown or missing handler")

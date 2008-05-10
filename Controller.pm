@@ -17,6 +17,7 @@ use Schema;
 # variables - - - - - - - - - - - - - - - - - - - - - - - - -
 
 my $config_path = "BOOKMARKS_CONFIG_PATH";
+my $log_path = "BOOKMARKS_LOG_PATH";
 
 our %CONFIGS;
 
@@ -101,8 +102,11 @@ sub get_configs : Private { return %CONFIGS; }
 
 sub _init : Private
 {
-	throw Exception::Server::InvalidConfiguration("Undefined environment variable: BOOKMARKS_CONFIG_PATH")
+	throw Exception::Server::InvalidConfiguration("Undefined environment variable: $config_path")
 		unless $ENV{$config_path};
+
+	throw Exception::Server::InvalidConfiguration("Undefined environment variable: $log_path")
+		unless $ENV{$log_path};
 
 	throw Exception::Server::FileNotFound("Missing config file at ". $ENV{$config_path} . "/log4perl.conf")
 		unless -e ($ENV{$config_path} . "/log4perl.conf");
@@ -124,9 +128,27 @@ sub _init : Private
 		)->getall();
 	}
 
+	# ensure that an environment is specified
+	# either as an environment variable or in the application config file
+	my $env = $ENV{"BOOKMARKS_ENV"}
+		? $ENV{"BOOKMARKS_ENV"}
+		: $CONFIGS{"default"};
+
+	throw Exception::Server::InvalidConfiguration("Undefined environment variable: ENV")
+		unless $env;
+
+	my $environment = $CONFIGS{"env"}{$env};
+	throw Exception::Server::InvalidConfiguration("Specified environment ($env) does not exist in $ENV{$config_path}/application.conf")
+		unless ref $environment eq "HASH";
+
 	# connect to database
-	$SCHEMA = Schema->connect($CONFIGS{"db_connect_string"})
-		unless defined $SCHEMA;
+	$SCHEMA = Schema->connect
+	(
+		$environment->{"db_connect_string"}, 
+		$environment->{"db_username"}, 
+		$environment->{"db_password"}, 
+		$environment->{"db_params"}
+	) unless defined $SCHEMA;
 
 	# check if sql debug flag is 1.  If yes, turn on debugging!
 	if ($CONFIGS{'sql_debug'})

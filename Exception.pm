@@ -18,7 +18,7 @@ sub stringify
 {
 	my ($this) = @_;
 
-	return (ref $this) . ": " . $this->SUPER::stringify() . "\n";
+	return (ref $this) . ": " . $this->SUPER::stringify();
 }
 
 sub TO_JSON

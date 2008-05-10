@@ -7,6 +7,8 @@ use Cwd;
 
 my $cwd = getcwd();
 $ENV{"BOOKMARKS_CONFIG_PATH"} = "$cwd/conf";
+$ENV{"BOOKMARKS_LOG_PATH"} = "$cwd/log";
+$ENV{"BOOKMARKS_ENV"} = "json_test";
 
 my $server = JSON::RPC::Server::Daemon->new(LocalPort => $ARGV[0]);
 

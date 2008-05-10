@@ -36,8 +36,10 @@ my $callObj =
 	params => 
 	[
 		{
+			args => [],
 			handler => "Server",
 			method => "version",
+			token => { username => 'userA', password => 'pass' },
 		},
 	],
 };
