@@ -31,7 +31,7 @@ var StatusBar =
 				break;
 
 			case 'settings':
-				window.openDialog("chrome://bookmark/content/settings.xul", "", "chrome");
+				window.openDialog("chrome://bookmark/content/settings.xul", "", "chrome, toolbar");
 				break;
 				
 			default:

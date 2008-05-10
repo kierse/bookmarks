@@ -34,6 +34,20 @@ sub new
 	__PACKAGE__->SUPER::new($fields);
 }
 
+sub append
+{
+	my ($this, @Args) = @_;
+
+	push @{$this->args}, @Args;
+}
+
+sub add_warnings
+{
+	my ($this, @Warnings) = @_;
+
+	push @{$this->warnings}, @Warnings;
+}
+
 # private methods - - - - - - - - - - - - - - - - - - - - - -
 
 1;

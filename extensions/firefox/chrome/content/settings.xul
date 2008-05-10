@@ -4,8 +4,9 @@
 
 <!DOCTYPE dialog SYSTEM "chrome://bookmark/locale/settings.dtd">
 
-<prefwindow title="test" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-	<prefpane id="bookmark1" label="prefpanel1">
+<prefwindow title="&settings.window.title;" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<prefpane id="bookmark-settings-general" label="&settings.pane.general.label;" image="chrome://bookmark/skin/general.png">
+		<!--
 		<preferences>
 			<preference id="pref_symbol" name="stockwatcher2.symbol" type="string"/>
 		</preferences>
@@ -14,8 +15,10 @@
 			<label control="symbol" value="Stock to watch: "/>
 			<textbox preference="pref_symbol" id="symbol" maxlength="4"/>
 		</hbox>
+		-->
+		<button label="fetch server version" oncommand="Settings.getServerVersion();" accesskey="f" />
 	</prefpane>
-	<prefpane id="saveoptions" label="Backups">
+	<prefpane id="bookmarks-settings-advanced" label="&settings.pane.advanced.label;" image="chrome://bookmark/skin/advanced.png">
 		<preferences>
 			<preference id="pref-backup" name="myapp.mybackups" type="bool"/>
 			<preference id="pref-backupduration" name="myapp.mybackups.duration" type="int"/>
@@ -23,6 +26,8 @@
 		<checkbox label="Automatically Save Backups" preference="pref-backup"/>
 		<textbox label="Duration:" preference="pref-backupduration"/>
 	</prefpane>
+
+	<script src="settings.js" />
 </prefwindow>
 
 <!--

@@ -17,4 +17,5 @@ all child classes.
 - look into DBIx::Class caching abilities
 - expand bookmark test to include bookmark position other than 0
 - look at spliting Handler::Bookmark methods and have one method (parent, position) call the other (lft, rgt, level)
+- implement allowable_procedure and describe service methods (see JSON::RPC::MyApp for examples)
 

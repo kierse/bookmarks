@@ -24,13 +24,13 @@ our $SCHEMA;
 
 # public methods- - - - - - - - - - - - - - - - - - - - - - -
 
-sub request : Obj()
+sub request : Obj(request)
 {
-	my ($class, $request) = @_;
-	my $response;
+	my ($JSONServer, $obj) = @_;
+	my ($request, $response);
 
-   try
-   {
+#  try
+#  {
    	# first things first, initialize the controller
    	_init();
 
@@ -38,7 +38,7 @@ sub request : Obj()
    	$response = Message::Response->new();
 
    	# deserialize the client message and construct a request object
-		$request = Message::Request->new($request);
+		$request = Message::Request->new($obj->{request});
 
    	# invoke the appropriate controller and hand off processing 
    	# the request to it
@@ -54,38 +54,41 @@ sub request : Obj()
 			unless $handler->can($method);
 
    	$SCHEMA->txn_do(sub { $handler->$method($request, $response) });
-   }
-   catch Exception with
-   {
-   	my ($e, $continue) = @_;
+#  }
+#  catch Exception with
+#  {
+#  	my ($e, $continue) = @_;
 
-   	# if we've got a valid response object
-   	# add the error to the response object, set
-   	# the request status, and continue
-   	if (ref $response)
-   	{
-   		# add error to response
-   		$response->error($e);
+#  	# if we've got a valid response object
+#  	# add the error to the response object, set
+#  	# the request status, and continue
+#  	if (ref $response)
+#  	{
+#  		# add error to response
+#  		$response->error($e);
 
-   		# make sure the response does not contain any valid data
-   		# and the status is set to -1
-   		$response->args([]);
-   		$response->status(-1);
-   	}
+#  		# make sure the response does not contain any valid data
+#  		# and the status is set to -1
+#  		$response->args([]);
+#  		$response->status(-1);
+#  	}
 
-   	# we don't have a response object, something sinister happened
-   	# manually create a minimal response for the client and continue
-   	else
-   	{
-   		$response = 
-   		{
-   			status => -1,
-   			error => $e,
-   		};
-   	}
+#  	# we don't have a response object, something sinister happened
+#  	# manually create a minimal response for the client and continue
+#  	else
+#  	{
+#  		$response = 
+#  		{
+#  			status => -1,
+#  			error => $e,
+#  		};
+#  	}
 
-		$$continue = 1;
-   };
+#  	$$continue = 1;
+#  };
+
+	# clear all recorded but unreported errors...
+	Error->flush();
 
 	return $response;
 }
@@ -102,7 +105,7 @@ sub _init : Private
 		unless $ENV{$config_path};
 
 	throw Exception::Server::FileNotFound("Missing config file at ". $ENV{$config_path} . "/log4perl.conf")
-		unless -e $ENV{$config_path} . "/log4perl.conf";
+		unless -e ($ENV{$config_path} . "/log4perl.conf");
 
 	# initialize logger
 	Logger->init($ENV{$config_path} . "/log4perl.conf");
@@ -112,7 +115,7 @@ sub _init : Private
 	unless (defined %CONFIGS)
 	{
 		throw Exception::Server::FileNotFound("Missing config file at ". $ENV{$config_path} . "/application.conf")
-			unless -e $ENV{$config_path} . "/application.conf";
+			unless -e ($ENV{$config_path} . "/application.conf");
 
 		%CONFIGS = Config::General->new
 		(

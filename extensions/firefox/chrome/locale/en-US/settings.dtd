@@ -1,2 +1,4 @@
 <!ENTITY extension.name "Bookmark Synchronizer">
-<!ENTITY settings.title "Bookmark Synchornizer Settings">
+<!ENTITY settings.window.title "Bookmark Synchornizer Settings">
+<!ENTITY settings.pane.general.label "General">
+<!ENTITY settings.pane.advanced.label "Advanced">
