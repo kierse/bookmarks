@@ -15,7 +15,7 @@ use base qw/Handler/;
 
 sub import_tree
 {
-	my ($class, $request, $response) = @_;
+	my ($server, $request, $response) = @_;
 	my $user = $request->token()->user();
 
 	my $model = Controller->get_model();
@@ -74,11 +74,11 @@ sub import_tree
 
 sub add
 {
-	my $class = shift;
+	my $server = shift;
 	my ($request, $response) = @_;
 	my $user = $request->token()->user();
 
-	$class->SUPER::add(@_);
+	__PACKAGE__->SUPER::add(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
@@ -154,11 +154,11 @@ sub add
 
 sub update
 {
-	my $class = shift;
+	my $server = shift;
 	my ($request, $response) = @_;
 	my $user = $request->token()->user();
 
-	$class->SUPER::update(@_);
+	__PACKAGE__->SUPER::update(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();
@@ -225,11 +225,11 @@ sub update
 
 sub delete
 {
-	my $class = shift;
+	my $server = shift;
 	my ($request, $response) = @_;
 	my $user = $request->token()->user();
 
-	$class->SUPER::delete(@_);
+	__PACKAGE__->SUPER::delete(@_);
 
 	my $model = Controller->get_model();
 	my $logger = Logger->get_logger();

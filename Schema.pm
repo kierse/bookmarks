@@ -17,9 +17,6 @@ __PACKAGE__->exception_action
 
 		# otherwise, generate a new exception and throw
 		throw Exception::Server::Database($e);
-
-		# otherwise, generate new exception and throw
-#		throw Exception::Server::Database(@_); #print ""; 
 	}
 );
 

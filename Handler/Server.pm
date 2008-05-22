@@ -17,7 +17,7 @@ my $version = "0.0.1";
 
 sub version
 {
-	my ($class, $request, $response) = @_;
+	my ($server, $request, $response) = @_;
 
 	my $logger = Logger->get_logger();
 	$logger->info("request for server version");

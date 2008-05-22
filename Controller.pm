@@ -5,6 +5,7 @@ use warnings;
 
 use Config::General;
 use Error qw/:try/;
+use Log::Log4perl;
 
 use base qw/JSON::RPC::Procedure/;
 
@@ -27,18 +28,24 @@ our $SCHEMA;
 
 sub request : Obj(request)
 {
-	my ($JSONServer, $obj) = @_;
+	my ($server, $obj) = @_;
 	my ($request, $response);
 
-#  try
-#  {
+	my $logger;
+   try
+   {
    	# first things first, initialize the controller
    	_init();
 
+		$logger = Logger->get_logger(__PACKAGE__);
+
    	# create a new empty response object
+		$logger->info("creating empty message response");
    	$response = Message::Response->new();
 
    	# deserialize the client message and construct a request object
+		$logger->info("processing request message");
+		$logger->debug("raw request:\n" . $server->retrieve_json_from_post) ;
 		$request = Message::Request->new($obj->{request});
 
    	# invoke the appropriate controller and hand off processing 
@@ -48,48 +55,71 @@ sub request : Obj(request)
    	my $handler = $request->handler();
    	my $method = $request->method();
 
+		$logger->info("loading requested method handler");
 		throw Exception::Server::UNIVERSALRequireFailure($@)
 			unless $handler->require();
 
+		# get reference to handler method (if it exists)
+		$method = $handler->can($method);
+
 		throw Exception::Server::UnknownMethod("Unknown method '$method' in handler '$handler'.")
-			unless $handler->can($method);
+			unless defined $method;
 
-   	$SCHEMA->txn_do(sub { $handler->$method($request, $response) });
-#  }
-#  catch Exception with
-#  {
-#  	my ($e, $continue) = @_;
+		$logger->info("invoking requested method on specified handler");
+   	$SCHEMA->txn_do(sub { $method->($server, $request, $response) });
 
-#  	# if we've got a valid response object
-#  	# add the error to the response object, set
-#  	# the request status, and continue
-#  	if (ref $response)
-#  	{
-#  		# add error to response
-#  		$response->error($e);
+#		if ($logger->is_debug())
+#		{
+#			my $json = $server->json();
+#			$json->allow_blessed(1);
+#			$json->convert_blessed(1);
+#			$logger->debug("raw response:\n" . $json->to_json($response))
+#		}
+   }
+   catch Exception with
+   {
+   	my ($e, $continue) = @_;
 
-#  		# make sure the response does not contain any valid data
-#  		# and the status is set to -1
-#  		$response->args([]);
-#  		$response->status(-1);
-#  	}
+   	$logger->info("trapped exception") if $logger;
 
-#  	# we don't have a response object, something sinister happened
-#  	# manually create a minimal response for the client and continue
-#  	else
-#  	{
-#  		$response = 
-#  		{
-#  			status => -1,
-#  			error => $e,
-#  		};
-#  	}
+   	# if we've got a valid response object
+   	# add the error to the response object, set
+   	# the request status, and continue
+   	if (ref $response)
+   	{
+   		$logger->info("adding trapped exception to response, clearing arguments, and setting status to -1")
+   			if $logger;
 
-#  	$$continue = 1;
-#  };
+   		# add error to response
+   		$response->error($e);
+
+   		# make sure the response does not contain any valid data
+   		# and the status is set to -1
+   		$response->args([]);
+   		$response->status(-1);
+   	}
+
+   	# we don't have a response object, something sinister happened
+   	# manually create a minimal response for the client and continue
+   	else
+   	{
+   		$logger->info("exception occurred before response object was created, building generic response manually")
+   			if $logger;
+
+   		$response = 
+   		{
+   			status => -1,
+   			error => $e,
+   		};
+   	}
+
+   	$continue = 1;
+   };
 
 	# clear all recorded but unreported errors...
 	Error->flush();
+
+	$logger->debug("end of controller request handler");
 
 	return $response;
 }
@@ -132,7 +162,7 @@ sub _init : Private
 	# either as an environment variable or in the application config file
 	my $env = $ENV{"BOOKMARKS_ENV"}
 		? $ENV{"BOOKMARKS_ENV"}
-		: $CONFIGS{"default"};
+		: $CONFIGS{"env"}{"default"};
 
 	throw Exception::Server::InvalidConfiguration("Undefined environment variable: ENV")
 		unless $env;

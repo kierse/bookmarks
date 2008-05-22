@@ -19,7 +19,7 @@ our $AUTOLOAD;
 
 my $fields = 
 {
-	user => undef
+	user => undef,
 };
 
 # public methods- - - - - - - - - - - - - - - - - - - - - - -

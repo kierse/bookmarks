@@ -16,8 +16,17 @@ var Settings =
 		// build request object
 		var request = 
 		{
-			'handler': 'Server',
-			'method': 'version',
+			'method': 'request',
+			'version': '1.1',
+			'params':
+			[
+				{
+					'args': [],
+					'handler': 'Server',
+					'method': 'version',
+					'token' : {'username': 'userA', 'password': 'pass'}
+				},
+			]
 		};
 
 		var encodedRequest = JSONObject.encode(request);
@@ -25,7 +34,8 @@ var Settings =
 
 		// generate http request and send message
 		var req = new XMLHttpRequest();
-		req.open('POST', 'http://localhost:8080/bookmarks', true);
+		req.open('POST', 'http://localhost/handler/bookmarks', true);
+		req.overrideMimeType('application/json');
 		req.onreadystatechange = function(e)
 		{
 			if (req.readyState == 4)

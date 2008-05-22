@@ -12,7 +12,7 @@ use Exception::Server::Types;
 
 sub add
 {
-	my ($class, $request, $response) = @_;
+	my ($server, $request, $response) = @_;
 	my $args = $request->args();
 
 	throw Exception::Client::WrongNumberOfArgs($request->handler() . "->add expects one or more arguments")
@@ -24,7 +24,7 @@ sub add
 
 sub update
 {
-	my ($class, $request, $response) = @_;
+	my ($server, $request, $response) = @_;
 	my $args = $request->args();
 
 	throw Exception::Client::WrongNumberOfArgs($request->handler() . "->update expects one or more arguments")
@@ -36,7 +36,7 @@ sub update
 
 sub delete
 {
-	my ($class, $request, $response) = @_;
+	my ($server, $request, $response) = @_;
 	my $args = $request->args();
 
 	throw Exception::Client::WrongNumberOfArgs($request->handler() . "->delete expects one or more argument")
@@ -48,7 +48,7 @@ sub delete
 
 sub _get_temporary_id
 {
-	my ($class, $request, $raw) = @_;
+	my ($server, $request, $raw) = @_;
 
 	throw Exception::Client::InvalidRequest("All arguments passed to " . $request->handler() . "->" . $request->method() . " must have a temporary id (_tID)")
 		unless exists $raw->{_tID};
