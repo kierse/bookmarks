@@ -4,13 +4,9 @@ use strict;
 use warnings;
 
 use Test::More qw/no_plan/;
-use FindBin qw/$Bin/;
 use lib("..");
 
 use Controller;
-
-# set some needed environment variables
-$ENV{"BOOKMARKS_CONFIG_PATH"} = "$Bin/../conf";
 
 BEGIN 
 {

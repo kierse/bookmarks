@@ -3,14 +3,11 @@
 use strict; 
 use warnings;
 
-use Test::More qw/no_plan/;
-use FindBin qw/$Bin/;
+use JSON::RPC::Server::Daemon;
 use lib("..");
+use Test::More qw/no_plan/;
 
 use Controller;
-
-# set some needed environment variables
-$ENV{"BOOKMARKS_CONFIG_PATH"} = "$Bin/../conf";
 
 BEGIN 
 {
@@ -38,7 +35,11 @@ my $request =
 	],
 };
 
-my $response = Controller->request($request);
+my $server = JSON::RPC::Server::Daemon->new(LocalPort => $ENV{"BOOKMARKS_PORT"});
+$server->json->allow_blessed(1);
+$server->json->convert_blessed(1);
+
+my $response = Controller::request($server, $request);
 my $model = Controller->get_model();
 
 SKIP:

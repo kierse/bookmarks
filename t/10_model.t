@@ -2,10 +2,11 @@
 
 use strict; use warnings;
 
+use Error qw/:try/;
 use lib("..");
 use Test::More qw/no_plan/;
 
-use Exception qw/:try/;
+use Exception::Server::Types;
 use Model::User;
 
 BEGIN 
@@ -20,7 +21,7 @@ my $schema;
 
 # first things first: create a new sqlite database and all tables
 unlink $testDB if -e $testDB;
-ok(system("sqlite3 $testDB < ../sql/create.sql") == 0, "initializing sqlite database");
+ok(system("sqlite3 $testDB < ../sql/create_sqlite.sql") == 0, "initializing sqlite database");
 
 # connect to test sqlite database
 ok($schema = Schema->connect("dbi:SQLite:$testDB"), "connecting to sqlite database");
@@ -38,7 +39,7 @@ my @Users = $user_rs->populate
 ok(scalar @Users, "inserting users into database");
 
 # insert duplicate username
-Exception->flush();
+Error->flush();
 try
 {
 	$user_rs->create({username => 'userA', password => Model::User->encrypt_password('pass')});
@@ -47,13 +48,21 @@ catch Exception::Server::Database with
 {
 	# do nothing, test in finally block will report on error
 }
+otherwise
+{
+	my ($e) = @_;
+
+	print STDERR ref $e . "\n";
+}
 finally
 {
 	ok(Exception::Server::Database->prior(), "attempting to insert duplicate username");
 };
 
+exit;
+
 # insert null username
-Exception->flush();
+Error->flush();
 try
 {
 	$user_rs->create({password => Model::User->encrypt_password('pass')});
@@ -83,7 +92,7 @@ my @Files = $file_rs->populate
 ok(scalar @Files, "inserting files into database");
 
 # insert duplicate file
-Exception->flush();
+Error->flush();
 try
 {
 	$file_rs->create({id => 0, name => 'fileG', owner => "userA"});
@@ -120,7 +129,7 @@ my @Bookmarks = $bookmark_rs->populate
 ok(scalar @Bookmarks, "inserting bookmarks into database");
 
 # attempt to insert non-unique bookmark
-Exception->flush();
+Error->flush();
 try
 {
 	$bookmark_rs->create({id => 13, title => "invalid", lft => 0, rgt => 25, level => 0, file => 5});
