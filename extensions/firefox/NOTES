@@ -1,0 +1,6 @@
+NOTES
+=====
+- use annotations to store remote ID in places database, see:
+http://developer.mozilla.org/en/docs/Using_the_Places_annotation_service
+- can attach an observer that watches for bookmark changes, see:
+http://developer.mozilla.org/en/docs/nsINavBookmarkObserver
