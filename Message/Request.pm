@@ -65,7 +65,6 @@ sub new
 	throw Exception::Client::MissingRequestData("Missing method")
 		unless defined $request->{method} && $this->method($request->{method});
 
-	# save arguments
 	throw Exception::Client::MissingRequestData("Request arguments must be passed in an array")
 		unless ref($request->{args}) eq "ARRAY" && $this->args($request->{args});
 

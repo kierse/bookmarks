@@ -39,14 +39,17 @@ sub request : Obj(request)
 
 		$logger = Logger->get_logger(__PACKAGE__);
 
-   	# create a new empty response object
-		$logger->info("creating empty message response");
-   	$response = Message::Response->new();
+      my $request = $server->request();
+      $logger->debug("request method: " . $request->method());
 
    	# deserialize the client message and construct a request object
 		$logger->info("processing request message");
 		$logger->debug("raw request:\n" . $server->retrieve_json_from_post) ;
 		$request = Message::Request->new($obj->{request});
+
+   	# create a new empty response object
+		$logger->info("creating empty message response");
+   	$response = Message::Response->new();
 
    	# invoke the appropriate controller and hand off processing 
    	# the request to it

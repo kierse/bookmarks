@@ -34,7 +34,7 @@ var Settings =
 
 		// generate http request and send message
 		var req = new XMLHttpRequest();
-		req.open('POST', 'http://localhost/handler/bookmarks', true);
+		req.open('GET', 'http://localhost/handler/bookmarks', true);
 		req.overrideMimeType('application/json');
 		req.onreadystatechange = function(e)
 		{
